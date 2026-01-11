@@ -1,0 +1,348 @@
+/* favorite.css */
+
+.favorite-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 33, 44, 0.55);
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.favorite-drawer {
+    position: fixed;
+    top: 0;
+    right: -380px;
+    width: 360px;
+    height: 100vh;
+    background: #fff;
+    z-index: 101;
+    transition: right 0.35s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+}
+
+.favorite-drawer.open {
+    right: 0;
+}
+
+.favorite-header {
+    padding: 20px;
+    border-bottom: 1px solid #e5e8ed;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.favorite-header h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1e212c;
+    margin: 0;
+}
+
+.favorite-header button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #787a80;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.favorite-header button:hover {
+    background: #f4f5f7;
+    color: #1e212c;
+}
+
+.favorite-items {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    background: #fafafa;
+}
+
+.favorite-loading {
+    text-align: center;
+    padding: 40px;
+    color: #787a80;
+}
+
+.favorite-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-heart {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.favorite-empty {
+    text-align: center;
+    color: #787a80;
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.empty-hint {
+    color: #9a9ca5;
+    font-size: 14px;
+    margin: 0 0 24px 0;
+    line-height: 1.4;
+}
+
+.continue-shopping {
+    background: #17696a;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.continue-shopping:hover {
+    background: #145c5c;
+}
+
+/* Favorite Item */
+.favorite-item {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e8ed;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.favorite-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.favorite-thumb {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f4f5f7;
+    border: 1px solid #e5e8ed;
+}
+
+.favorite-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.favorite-thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #787a80;
+    font-size: 12px;
+}
+
+.favorite-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.favorite-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e212c;
+    margin: 0;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    /* -webkit-line-clamp: 2; */
+    -webkit-box-orient: vertical;
+}
+
+.favorite-color {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #787a80;
+}
+
+.color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-price {
+    font-weight: 700;
+    color: #1e212c;
+    font-size: 16px;
+    margin: 2px 0;
+}
+
+.favorite-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.add-to-cart-btn {
+    background: #17696a;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background 0.2s;
+    flex: 1;
+}
+
+.add-to-cart-btn:hover {
+    background: #145c5c;
+}
+
+.favorite-remove {
+    background: #fff;
+    border: 1px solid #e5e8ed;
+    color: #787a80;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.favorite-remove:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #e53935;
+}
+
+/* Footer */
+.favorite-footer {
+    padding: 20px;
+    border-top: 1px solid #e5e8ed;
+    background: #fff;
+}
+
+.favorite-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 15px;
+}
+
+.favorite-total span {
+    color: #787a80;
+}
+
+.favorite-total strong {
+    font-size: 18px;
+    color: #1e212c;
+}
+
+.view-all-btn {
+    width: 100%;
+    background: #fff;
+    border: 2px solid #17696a;
+    color: #17696a;
+    padding: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+    background: #17696a;
+    color: white;
+}
+
+/* Scrollbar */
+.favorite-items::-webkit-scrollbar {
+    width: 4px;
+}
+
+.favorite-items::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.favorite-items::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.favorite-items::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .favorite-drawer {
+        width: 100%;
+        right: -100%;
+    }
+
+    .favorite-item {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .favorite-thumb {
+        width: 70px;
+        height: 70px;
+    }
+}

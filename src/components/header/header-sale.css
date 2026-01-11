@@ -1,0 +1,57 @@
+/* ================= SALE STRIP ================= */
+
+.sale-strip {
+  background: #17696A;
+  color: #fff;
+}
+
+.sale-strip-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  gap: 20px;
+}
+
+/* ---------- ARROWS ---------- */
+.strip-arrow {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 20px;
+  cursor: pointer;
+  width: 24px;          /* 👈 фиксируем */
+  text-align: center;
+}
+
+.strip-arrow:hover {
+  color: #fff;
+}
+
+/* ---------- FIXED TEXT ZONE ---------- */
+.sale-text-wrapper {
+  width: 420px;         /* 👈 КЛЮЧЕВОЕ */
+  text-align: center;
+  overflow: hidden;
+}
+
+.sale-text {
+  margin: 0;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.sale-text strong {
+  font-weight: 700;
+}
+
+.sale-text a {
+  color: #fff;
+  margin-left: 6px;
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+.sale-text a:hover {
+  opacity: 0.85;
+}

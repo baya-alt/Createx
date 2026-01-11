@@ -1,0 +1,212 @@
+/* --- Глобальный контейнер секции Hero --- */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center; /* Центрируем контент по вертикали */
+    justify-content: center;
+    transition: background-color 0.5s ease;
+    overflow: hidden;
+    /* Убедитесь, что шрифт установлен в вашей глобальной теме */
+    font-family: 'Ubuntu', sans-serif; 
+}
+
+/* Ограничитель ширины контента */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Главный Flex-контейнер: Разделение Текст/Изображение --- */
+.content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60px 0;
+}
+
+/* --- Текстовая колонка (Левая часть) --- */
+.text-col {
+    flex: 0 0 45%; /* Даем колонке фиксированную ширину */
+    max-width: 500px;
+    z-index: 2; /* Убеждаемся, что текст выше фоновых элементов */
+}
+
+.subtitle {
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #1E212C;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.title {
+    font-size: 72px; /* Очень крупный заголовок */
+    font-weight: 900;
+    color: #1E212C;
+    margin: 0 0 40px 0;
+    line-height: 1.1;
+}
+
+/* --- Кнопки CTA --- */
+.cta-buttons {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 80px;
+}
+
+.btn {
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Outline button (Shop sale) */
+.btn-outline {
+    background: transparent;
+    border: 1px solid #17696A;
+    color: #17696A;
+}
+.btn-outline:hover {
+    background: #17696A;
+    color: #fff;
+}
+
+/* Filled button (Shop the menswear) - Цвет #17696A */
+.btn-filled {
+    background: #17696A;
+    border: 1px solid #17696A;
+    color: #fff;
+}
+.btn-filled:hover {
+    background: #104f50;
+}
+
+/* --- Изображение (Правая часть) --- */
+.image-col {
+    flex: 0 0 55%; 
+    display: flex;
+    justify-content: flex-end; /* Выравнивание картинки вправо */
+    position: relative;
+}
+
+.hero-image {
+    max-height: 550px; /* Ограничиваем высоту, чтобы не выходило за блок */
+    object-fit: contain;
+    margin-top: 35px;
+    margin-left: 100px;
+    /* Анимация для плавной смены фото */
+    animation: fadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 100%; /* Убеждаемся, что изображение занимает всю колонку */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* --- Пагинация (01 02 03...) --- */
+.pagination {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.page-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: #9A9CA5; /* Серый цвет для неактивных */
+    cursor: pointer;
+    position: relative;
+    padding-bottom: 15px; /* Увеличиваем отступ для полосы */
+    transition: color 0.3s;
+}
+
+.page-number.active {
+    color: #1E212C; /* Темный цвет для активного */
+    font-size: 20px;
+}
+
+/* Полоска под активной цифрой */
+.page-number.active .progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px; /* Длина полосы */
+    height: 2px;
+    background-color: #1E212C;
+    transition: all 0.5s ease;
+}
+
+/* --- Стрелки навигации --- */
+.arrow-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.7); /* Полупрозрачный белый фон */
+    border: 1px solid rgba(220, 220, 220, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    color: #1E212C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    z-index: 10;
+}
+
+.arrow-btn:hover {
+    background: #17696A;
+    color: white;
+}
+
+.left-arrow { left: 40px; }
+.right-arrow { right: 40px; }
+
+
+/* --- Медиа-запросы для мобильной версии --- */
+@media (max-width: 992px) {
+    .content-wrapper {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 100px;
+    }
+    .text-col {
+        order: 2; /* Текст снизу */
+        margin-top: 40px;
+    }
+    .image-col {
+        order: 1; /* Картинка сверху */
+        justify-content: center;
+    }
+    .hero-image {
+        max-height: 40vh;
+    }
+    .title {
+        font-size: 52px;
+    }
+    .cta-buttons {
+        justify-content: center;
+    }
+    .pagination {
+        justify-content: center;
+    }
+    .arrow-btn {
+        top: 30%;
+        left: 10px;
+    }
+    .right-arrow {
+        right: 10px;
+    }
+}

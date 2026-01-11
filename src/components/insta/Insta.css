@@ -1,0 +1,86 @@
+.insta {
+  max-width: 1272px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+  font-family: 'Inter', sans-serif;
+}
+
+.insta-left {
+  max-width: 320px;
+  margin-left: 35px;
+}
+
+.insta-label {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #777;
+  margin-bottom: 10px;
+}
+
+.insta-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.insta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #17696a;
+  border-radius: 6px;
+  color: #17696a;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+}
+
+.insta-btn:hover {
+  background: #17696a;
+  color: white;
+}
+
+.insta-gallery {
+  margin-right: 37px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.insta-gallery img {
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Адаптив */
+
+@media (max-width: 900px) {
+  .insta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .insta-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .insta-gallery img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 500px) {
+  .insta-gallery {
+    grid-template-columns: 1fr;
+  }
+}

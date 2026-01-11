@@ -1,0 +1,172 @@
+/* ================= TOP BAR ================= */
+
+.header-wrapper {
+  width: 100%;
+  font-family: 'Ubuntu', sans-serif;
+  position: relative;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.top-bar {
+  background-color: #1E212C;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.top-bar-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.availability {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+}
+
+.availability strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.top-nav a {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  margin: 0 15px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ================= LANGUAGE ================= */
+
+.lang-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 6px;
+}
+
+.flag-icon {
+  width: 16px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+  display: block;
+}
+
+.arrow-down {
+  font-size: 9px;
+  opacity: 0.8;
+}
+
+.lang-dropdown {
+  position: absolute;
+  top: 32px;
+  right: 0;
+
+  width: 140px;
+  background: #fff;
+
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.15);
+  z-index: 300;
+  overflow: hidden;
+}
+
+.lang-dropdown div {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 12px;
+  color: #1E212C;
+  cursor: pointer;
+}
+
+.lang-dropdown div:hover {
+  background: #f4f5f7;
+}
+
+.lang-dropdown img {
+  width: 16px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* ================= USER ================= */
+
+.user-auth {
+  position: relative;
+}
+
+.login-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: 38px;
+
+  min-width: 160px;
+  background: #fff;
+
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.15);
+  z-index: 300;
+}
+
+.user-dropdown-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #17696a;
+  cursor: pointer;
+}
+
+.user-dropdown-item:hover {
+  background: #f4f5f7;
+}
+
+.user-dropdown-item.logout {
+  color: #ff4242;
+}

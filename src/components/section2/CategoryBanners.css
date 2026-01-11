@@ -1,0 +1,103 @@
+/* --- Секция Категорий --- */
+.category-banners-section {
+    /* Отрицательный margin-top для наложения на Hero Slider */
+    margin-top: -80px; 
+    /* padding-bottom: 80px; */
+    position: relative;
+    z-index: 5; 
+}
+
+/* Переиспользуем контейнер для центрирования */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Сетка баннеров */
+.banners-grid {
+    display: flex;
+    justify-content: space-between; 
+    gap: 20px; 
+}
+
+/* Карточка баннера */
+.category-banner-card {
+    /* Рассчитываем ширину колонки, которая должна быть больше 300px */
+    flex: 0 0 calc(33.333% - 13.333px); 
+    text-decoration: none;
+    text-align: center;
+    color: #1E212C;
+    transition: transform 0.3s ease; 
+    
+    background-color: transparent; 
+    padding: 0; 
+    box-shadow: none; 
+    border-radius: 0; 
+}
+
+.category-banner-card:hover {
+    transform: translateY(-5px); /* Подъем при наведении */
+}
+
+.image-wrapper {
+    overflow: hidden;
+    margin-bottom: 15px;
+    height: 350px; 
+    /* Используем flex для центрирования самого изображения внутри обертки */
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px; 
+}
+
+.category-image {
+    /* ⭐ ФИКСИРОВАННАЯ ШИРИНА ПО ВАШЕМУ ЗАПРОСУ */
+    width: 300px;
+    display: block;
+    object-fit: cover; 
+    transition: transform 0.4s ease;
+}
+
+.category-banner-card:hover .category-image {
+    transform: scale(1.05); 
+}
+
+.category-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 15px;
+    color: #1E212C;
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 992px) {
+    .banners-grid {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .category-banner-card {
+        flex: 0 0 calc(50% - 10px); /* 2 колонки */
+    }
+    .image-wrapper {
+        height: 250px;
+    }
+    /* ⭐ КОРРЕКЦИЯ: На узких экранах изображение должно масштабироваться, 
+       иначе оно выйдет за пределы колонки 50%. Вернем 100% для мобильных. */
+    .category-image {
+        width: 100%; 
+    }
+}
+
+@media (max-width: 576px) {
+    .category-banners-section {
+        margin-top: 0; 
+        padding-bottom: 40px;
+    }
+    .category-banner-card {
+        flex: 0 0 100%; /* 1 колонка */
+    }
+    .image-wrapper {
+        height: 300px; 
+    }
+}

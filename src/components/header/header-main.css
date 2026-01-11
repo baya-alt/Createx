@@ -1,0 +1,346 @@
+/* ================= MAIN HEADER ================= */
+
+.main-header {
+  padding: 20px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.05);
+  position: relative;
+}
+
+.main-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo img {
+  height: 22px;
+}
+
+/* NAV */
+
+.main-nav a {
+  text-decoration: none;
+  color: #424551;
+  font-weight: 700;
+  margin-right: 25px;
+  font-size: 16px;
+}
+
+.main-nav a.sale-link {
+  color: #FF4242;
+}
+
+/* SEARCH */
+
+.search-box {
+  position: relative;
+  width: 380px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 40px 12px 20px;
+  border: 1px solid #D7DADD;
+  border-radius: 4px;
+}
+
+.search-box button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+}
+
+/* ICONS */
+
+.user-icons {
+  display: flex;
+  gap: 20px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  position: relative;
+}
+
+.icon-btn img {
+  height: 24px;
+}
+
+/* ===== COUNTER (badge) ===== */
+.counter {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #FF4242;
+  color: #ffffff;
+
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+
+  box-sizing: border-box;
+}
+
+/* Cart counter (green) */
+.counter.green {
+  background: #17696A;
+}
+
+
+.counter.green {
+  background: #17696A;
+}
+/* ===== ACTIVE MENU ITEM ===== */
+.main-nav a {
+  position: relative;
+  padding-bottom: 6px;
+}
+
+/* активная категория */
+.main-nav a.active {
+  color: #17696A;
+  font-weight: 700;
+}
+
+/* линия под активной категорией */
+.main-nav a.active::after {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #17696A;
+  border-radius: 2px;
+}
+
+/* SALE остаётся красным */
+.main-nav a.sale-link.active {
+  color: #FF4242;
+}
+
+.main-nav a.sale-link.active::after {
+  background-color: #FF4242;
+}
+
+/* Иконки пользователя кликабельны */
+.user-icons .icon-btn {
+  cursor: pointer;
+}
+
+/* На всякий случай — для img внутри кнопки */
+.user-icons .icon-btn img {
+  cursor: pointer;
+}
+/* Добавьте эти стили к существующему header-main.css */
+
+.user-icons .icon-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin: 0 5px;
+  transition: transform 0.2s ease;
+}
+
+.user-icons .icon-btn:hover {
+  transform: scale(1.1);
+}
+
+.user-icons .icon-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+/* Стили для счетчиков */
+.user-icons .counter {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background-color: #ef4444; /* Красный для избранного */
+  color: white;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid white;
+}
+
+.user-icons .counter.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.user-icons .counter.green {
+  background-color: #10b981; /* Зеленый для корзины */
+}
+
+.user-icons .counter.green.show {
+  animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Для больших чисел */
+.user-icons .counter[data-count="99+"] {
+  font-size: 9px;
+  padding: 0 3px;
+  min-width: 22px;
+}
+
+/* При наведении на иконку корзины */
+.user-icons .icon-btn:hover .counter {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Обновленные стили для счетчиков */
+
+.user-icons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-icons .icon-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.user-icons .icon-btn:hover {
+  transform: translateY(-2px);
+}
+
+.user-icons .icon-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+.user-icons .icon-btn:hover img {
+  opacity: 0.8;
+}
+
+/* Стили для счетчиков - всегда видим */
+.user-icons .counter {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background-color: #dc2626; /* Красный по умолчанию */
+  color: white;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.9;
+}
+
+/* Зеленый для корзины */
+.user-icons .counter.green {
+  background-color: #16a34a; /* Зеленый */
+}
+
+/* Когда есть товары - подсветка */
+.user-icons .counter.has-items {
+  background-color: #dc2626; /* Яркий красный для избранного с товарами */
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.user-icons .counter.green.has-items {
+  background-color: #16a34a; /* Яркий зеленый для корзины с товарами */
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+}
+
+/* Для больших чисел */
+.user-icons .counter:contains("99+") {
+  font-size: 9px;
+  padding: 0 3px;
+  min-width: 22px;
+  letter-spacing: -0.5px;
+}
+
+/* Когда 0 - немного приглушенный */
+.user-icons .counter:not(.has-items) {
+  opacity: 0.7;
+  background-color: #9ca3af; /* Серый для нуля */
+}
+
+.user-icons .counter.green:not(.has-items) {
+  background-color: #9ca3af; /* Серый для нуля в корзине */
+}
+
+/* При наведении на иконку */
+.user-icons .icon-btn:hover .counter:not(.has-items) {
+  transform: scale(1);
+  opacity: 0.8;
+}
+
+.user-icons .icon-btn:hover .counter.has-items {
+  transform: scale(1.1);
+}
+
+/* Анимация добавления товара */
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+.counter-animate {
+  animation: bounce 0.3s ease;
+}

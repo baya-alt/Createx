@@ -1,0 +1,52 @@
+.product-tabs {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+}
+
+.product-tabs button {
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-tabs button.active {
+  color: #000;
+  font-weight: 600;
+}
+
+.product-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1rem;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000;
+}
+
+.product-tabs button span {
+  background-color: #f0f0f0;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.tab-content {
+  min-height: 200px;
+  padding: 1rem 0;
+}
+
+.general-info-text {
+  color: #666;
+  line-height: 1.6;
+}

@@ -1,0 +1,70 @@
+/* ================= MEGA MENU ================= */
+
+.mega-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-top: 1px solid #e5e8ed;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.mega-menu-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 60px;
+  padding: 40px 0 50px;
+}
+
+/* ================= COLUMNS ================= */
+
+.menu-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Заголовки (CLOTHES, SHOES...) */
+.column-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e212c;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  letter-spacing: 0.04em;
+}
+
+/* ================= LINKS ================= */
+
+.column-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.column-list li {
+  margin-bottom: 10px;
+}
+
+.column-list a {
+  font-size: 14px;
+  font-weight: 400;
+  color: #424551;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.column-list a:hover {
+  color: #17696a;
+}
+
+/* SALE LINK */
+.sale-highlight {
+  color: #ff4242 !important;
+  font-weight: 600;
+}
+
+.sale-highlight:hover {
+  color: #d93636 !important;
+}

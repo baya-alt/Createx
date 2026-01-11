@@ -1,0 +1,125 @@
+.fashionblog {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 60px 20px 80px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header */
+.fashionblog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.fashionblog-header h2 {
+  font-size: 32px;
+  padding-left: 35px;
+  font-weight: 700;
+}
+
+.view-blog-btn {
+  background: none;
+  border: 1px solid #17696a;
+  color: #17696a;
+  margin-right: 35px;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-blog-btn:hover {
+  background: #17696a;
+  color: white;
+}
+
+/* Blog grid */
+.fashionblog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.blog-card {
+  background: white;
+  width: 550px;
+  border-radius: 8px;
+  margin-left: 30px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  transition: transform .3s ease;
+}
+
+.blog-card:hover {
+  transform: translateY(-6px);
+}
+
+.blog-card img {
+  width: 550px;
+  object-fit: cover;
+}
+
+.blog-content {
+  padding: 20px;
+}
+
+.blog-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.meta {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.excerpt {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* Partners */
+.partners {
+  margin-top: 60px;
+  padding-top: 40px;
+  /* border-top: 1px solid #eee; */
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 25px;
+}
+
+.partners img {
+  
+  object-fit: contain;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.partners img:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .fashionblog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .partners {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .partners {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

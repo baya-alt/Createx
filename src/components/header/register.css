@@ -1,0 +1,232 @@
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* ================= MODAL ================= */
+.auth-modal {
+  width: 380px;
+  background: #fff;
+  padding: 28px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(23, 105, 106, 0.15);
+}
+
+/* Close */
+.auth-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.auth-close:hover {
+  color: #17696A;
+}
+
+/* ================= FORM ================= */
+.auth-modal h2 {
+  margin-bottom: 16px;
+  color: #17696A;
+  font-weight: 600;
+}
+
+.auth-modal input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  transition: border-color 0.2s;
+}
+
+.auth-modal input:focus {
+  outline: none;
+  border-color: #17696A;
+  box-shadow: 0 0 0 2px rgba(23, 105, 106, 0.1);
+}
+
+.auth-submit {
+  width: 100%;
+  padding: 12px;
+  background: #17696A;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.auth-submit:hover {
+  background: #145C5D;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(23, 105, 106, 0.3);
+}
+
+.auth-switch {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.auth-switch span {
+  color: #17696A;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.auth-switch span:hover {
+  color: #145C5D;
+}
+
+/* ================= SUCCESS VIDEO ================= */
+.auth-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.success-video {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 12px;
+}
+
+.auth-success p {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17696A;
+}
+
+/* ================= CHECKMARK ================= */
+.auth-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkmark svg {
+  width: 110px;
+  height: 110px;
+  stroke: #17696A;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  animation: scaleIn 0.4s ease-out forwards;
+  filter: drop-shadow(0 4px 10px rgba(23, 105, 106, 0.25));
+}
+
+/* Анимация круга */
+.checkmark circle {
+  stroke-dasharray: 180;
+  stroke-dashoffset: 180;
+  animation: drawCircle 0.6s ease-out forwards;
+}
+
+/* Анимация галочки */
+.checkmark path {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: drawCheck 0.4s ease-out forwards;
+  animation-delay: 0.6s;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes drawCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ================= TEXT ================= */
+.auth-check p {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17696A;
+}
+
+.input-error {
+  border-color: #e5533d;
+  background-color: rgba(229, 83, 61, 0.05);
+}
+
+.error-text {
+  color: #e5533d;
+  font-size: 12px;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
+/* ================= ERROR MESSAGE ================= */
+.auth-error {
+  background: #ffeaea;
+  color: #e5533d;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  border-left: 3px solid #e5533d;
+}
+
+/* ================= FORGOT PASSWORD ================= */
+.forgot-password {
+  text-align: right;
+  margin: -5px 0 15px 0;
+  font-size: 13px;
+  color: #17696A;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.forgot-password:hover {
+  color: #145C5D;
+  text-decoration: underline;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 480px) {
+  .auth-modal {
+    width: 90%;
+    padding: 20px;
+    margin: 0 16px;
+  }
+  
+  .checkmark svg {
+    width: 90px;
+    height: 90px;
+  }
+}

@@ -1,0 +1,70 @@
+.popular-categories {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: auto;
+  margin-top: 50px;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  text-align: left;
+  color: #333;
+  display: flex;
+  justify-content: center;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0; /* Убрал все отступы между фото */
+  justify-items: center;
+}
+
+.category-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.category-item:hover {
+  transform: translateY(-5px);
+}
+
+.category-img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0; /* Без отступов */
+  }
+  
+  .section-title {
+    font-size: 24px;
+  }
+  
+  .category-img {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0; /* Без отступов */
+  }
+  
+  .category-img {
+    width: 100px;
+    height: 100px;
+  }
+}
