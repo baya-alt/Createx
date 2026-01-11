@@ -62,7 +62,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <span>© All rights reserved. Made with ❤️ by Createx Studio</span>
+        <span>© All rights reserved. Made with  by Createx Studio</span>
         <a href="#top" className="go-top">Go to top ↑</a>
       </div>
     </footer>
