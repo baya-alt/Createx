@@ -1,5 +1,5 @@
 import { RouterProvider } from "react-router-dom";
-import { myRouter } from "../../Crea/src/Router";
+import { myRouter } from "react-router-dom"
 import { LanguageProvider } from "./contexts/LanguageContext";
 
 function App() {
