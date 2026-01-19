@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import './Checkout.css';
 import { useNavigate } from 'react-router-dom';
+import emailjs from '@emailjs/browser';
+import './Checkout.css';
 
 function Checkout() {
   const navigate = useNavigate();
@@ -13,59 +14,107 @@ function Checkout() {
     address: '',
     city: '',
     country: 'United States',
-    state: '',
     zipCode: '',
-    shippingMethod: 'standard',
-    paymentMethod: 'creditCard',
-    cardNumber: '',
-    cardName: '',
-    cardExpiry: '',
-    cardCVC: '',
-    saveInfo: false,
     agreeTerms: false
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: '', message: '', type: 'info' });
+
+  // ✅ ВАШИ РЕАЛЬНЫЕ ДАННЫЕ EMAILJS
+  const EMAILJS_CONFIG = {
+    SERVICE_ID: 'service_3xr5mic',
+    TEMPLATE_ID: 'template_c9iwede',
+    PUBLIC_KEY: 'wsSENBngvAWsgS0zB'
+  };
+
+  // Инициализация EmailJS
+  useEffect(() => {
+    emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+  }, []);
 
   // Загружаем товары из корзины
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
-    setCartItems(savedCart);
+    try {
+      const savedCart = localStorage.getItem('cart');
+      const cartData = savedCart ? JSON.parse(savedCart) : [];
+      setCartItems(cartData);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      setCartItems([]);
+    }
+
+    try {
+      const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+      let currentUser = null;
+      
+      if (userData) {
+        if (typeof userData === 'object') {
+          currentUser = userData;
+        } else if (typeof userData === 'string') {
+          try {
+            currentUser = JSON.parse(userData);
+          } catch (parseError) {
+            console.error('Error parsing user data:', parseError);
+            currentUser = null;
+          }
+        }
+      }
+      
+      if (currentUser) {
+        setFormData(prev => ({
+          ...prev,
+          firstName: currentUser.name?.split(' ')[0] || '',
+          lastName: currentUser.name?.split(' ').slice(1).join(' ') || '',
+          email: currentUser.email || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
   }, []);
 
-  // Рассчитываем итоговые суммы
+  // Рассчитываем суммы
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = item.hasDiscount && item.discount 
-        ? item.price * (1 - item.discount / 100)
-        : item.price;
-      return total + (price * item.quantity);
-    }, 0).toFixed(2);
-  };
-
-  const calculateShipping = () => {
-    switch (formData.shippingMethod) {
-      case 'express': return 15.99;
-      case 'priority': return 9.99;
-      default: return 4.99;
+    try {
+      return cartItems.reduce((total, item) => {
+        const price = item.hasDiscount && item.discount 
+          ? item.price * (1 - item.discount / 100)
+          : item.price;
+        return total + (price * item.quantity);
+      }, 0).toFixed(2);
+    } catch (error) {
+      console.error('Error calculating subtotal:', error);
+      return '0.00';
     }
   };
 
+  const calculateShipping = () => '9.99';
+  
   const calculateTax = () => {
-    const subtotal = parseFloat(calculateSubtotal());
-    return (subtotal * 0.08).toFixed(2); // 8% налог
+    try {
+      return (parseFloat(calculateSubtotal()) * 0.08).toFixed(2);
+    } catch (error) {
+      console.error('Error calculating tax:', error);
+      return '0.00';
+    }
   };
-
+  
   const calculateTotal = () => {
-    const subtotal = parseFloat(calculateSubtotal());
-    const shipping = parseFloat(calculateShipping());
-    const tax = parseFloat(calculateTax());
-    return (subtotal + shipping + tax).toFixed(2);
+    try {
+      const subtotal = parseFloat(calculateSubtotal());
+      const shipping = parseFloat(calculateShipping());
+      const tax = parseFloat(calculateTax());
+      return (subtotal + shipping + tax).toFixed(2);
+    } catch (error) {
+      console.error('Error calculating total:', error);
+      return '0.00';
+    }
   };
 
-  // Обработчики изменений формы
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -73,22 +122,16 @@ function Checkout() {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Очищаем ошибку при вводе
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Валидация формы
   const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\+?[\d\s-]{10,}$/;
-    const cardRegex = /^\d{16}$/;
-    const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-    const cvcRegex = /^\d{3,4}$/;
 
-    // Проверка обязательных полей
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.email.trim()) {
@@ -97,90 +140,271 @@ function Checkout() {
       newErrors.email = 'Invalid email address';
     }
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = 'Phone is required';
     } else if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
       newErrors.phone = 'Invalid phone number';
     }
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.city.trim()) newErrors.city = 'City is required';
     if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
-    
-    // Проверка платежной информации
-    if (formData.paymentMethod === 'creditCard') {
-      if (!formData.cardNumber.trim()) {
-        newErrors.cardNumber = 'Card number is required';
-      } else if (!cardRegex.test(formData.cardNumber.replace(/\s/g, ''))) {
-        newErrors.cardNumber = 'Invalid card number (16 digits required)';
-      }
-      if (!formData.cardName.trim()) newErrors.cardName = 'Name on card is required';
-      if (!formData.cardExpiry.trim()) {
-        newErrors.cardExpiry = 'Expiry date is required';
-      } else if (!expiryRegex.test(formData.cardExpiry)) {
-        newErrors.cardExpiry = 'Invalid expiry date (MM/YY)';
-      }
-      if (!formData.cardCVC.trim()) {
-        newErrors.cardCVC = 'CVC is required';
-      } else if (!cvcRegex.test(formData.cardCVC)) {
-        newErrors.cardCVC = 'Invalid CVC (3-4 digits)';
-      }
-    }
-
-    if (!formData.agreeTerms) {
-      newErrors.agreeTerms = 'You must agree to the terms and conditions';
-    }
+    if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
 
     return newErrors;
   };
 
-  // Обработка оформления заказа
+  // Показать модальное окно
+  const showModalMessage = (title, message, type = 'info') => {
+    setModalContent({ title, message, type });
+    setShowModal(true);
+  };
+
+  // Закрыть модальное окно
+  const closeModal = () => {
+    setShowModal(false);
+    setModalContent({ title: '', message: '', type: 'info' });
+  };
+
+  // Функция отправки email через EmailJS
+  const sendOrderEmail = async (orderData) => {
+    try {
+      // Форматируем дату
+      const orderDate = new Date(orderData.date);
+      const formattedDate = orderDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Базовые параметры для шаблона EmailJS
+      const templateParams = {
+        to_email: 'stargoe8@gmail.com',
+        from_name: 'Online Store',
+        reply_to: orderData.customer.email,
+        
+        order_id: orderData.id,
+        order_date: formattedDate,
+        
+        customer_name: `${orderData.customer.firstName} ${orderData.customer.lastName}`,
+        customer_email: orderData.customer.email,
+        customer_phone: orderData.customer.phone,
+        
+        shipping_address: orderData.customer.address,
+        city: orderData.customer.city,
+        country: orderData.customer.country,
+        zip_code: orderData.customer.zipCode,
+        
+        items_count: orderData.items.length,
+        
+        subtotal: orderData.subtotal,
+        shipping_cost: orderData.shippingCost,
+        tax_amount: orderData.tax,
+        order_total: orderData.total,
+        
+        payment_method: orderData.payment.method,
+        shipping_method: orderData.shipping.method,
+        order_status: orderData.status
+      };
+
+      // Добавляем информацию о каждом товаре отдельно
+      orderData.items.forEach((item, index) => {
+        const itemIndex = index + 1;
+        const itemPrice = item.hasDiscount && item.discount 
+          ? item.price * (1 - item.discount / 100)
+          : item.price;
+        const itemTotal = itemPrice * item.quantity;
+        
+        const itemName = item.name || 'Product ' + itemIndex;
+        const itemColor = item.color || 'Standard';
+        const itemSize = item.size || 'One Size';
+        const itemQuantity = item.quantity || 1;
+        
+        templateParams[`item${itemIndex}_name`] = itemName;
+        templateParams[`item${itemIndex}_color`] = itemColor;
+        templateParams[`item${itemIndex}_size`] = itemSize;
+        templateParams[`item${itemIndex}_quantity`] = itemQuantity;
+        templateParams[`item${itemIndex}_unit_price`] = itemPrice.toFixed(2);
+        templateParams[`item${itemIndex}_total_price`] = itemTotal.toFixed(2);
+      });
+
+      // Заполняем пустые поля для несуществующих товаров
+      for (let i = orderData.items.length + 1; i <= 5; i++) {
+        templateParams[`item${i}_name`] = '';
+        templateParams[`item${i}_color`] = '';
+        templateParams[`item${i}_size`] = '';
+        templateParams[`item${i}_quantity`] = '';
+        templateParams[`item${i}_unit_price`] = '';
+        templateParams[`item${i}_total_price`] = '';
+      }
+
+      // Отправляем email
+      const response = await emailjs.send(
+        EMAILJS_CONFIG.SERVICE_ID,
+        EMAILJS_CONFIG.TEMPLATE_ID,
+        templateParams,
+        EMAILJS_CONFIG.PUBLIC_KEY
+      );
+
+      // Сохраняем информацию о отправке
+      localStorage.setItem('last_email_sent', JSON.stringify({
+        orderId: orderData.id,
+        customer: `${orderData.customer.firstName} ${orderData.customer.lastName}`,
+        items: orderData.items.map(item => ({
+          name: item.name,
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        total: orderData.total,
+        timestamp: new Date().toISOString(),
+        email: 'stargoe8@gmail.com',
+        status: 'sent'
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Ошибка отправки email:', error);
+      
+      localStorage.setItem('last_email_error', JSON.stringify({
+        orderId: orderData?.id,
+        error: error.text || error.message || String(error),
+        timestamp: new Date().toISOString()
+      }));
+      
+      return false;
+    }
+  };
+
+  // Функция для тестирования EmailJS
+  const testEmailJS = async () => {
+    try {
+      const testTemplateParams = {
+        to_email: 'stargoe8@gmail.com',
+        from_name: 'Test Store',
+        reply_to: 'test@test.com',
+        
+        order_id: 'TEST123',
+        order_date: new Date().toLocaleDateString(),
+        
+        customer_name: 'John Doe',
+        customer_email: 'john@example.com',
+        customer_phone: '+1 (555) 123-4567',
+        
+        shipping_address: '123 Test St',
+        city: 'New York',
+        country: 'USA',
+        zip_code: '10001',
+        
+        items_count: 2,
+        
+        item1_name: 'Test T-Shirt',
+        item1_color: 'Blue',
+        item1_size: 'M',
+        item1_quantity: 2,
+        item1_unit_price: '19.99',
+        item1_total_price: '39.98',
+        
+        item2_name: 'Test Jeans',
+        item2_color: 'Black',
+        item2_size: '32',
+        item2_quantity: 1,
+        item2_unit_price: '49.99',
+        item2_total_price: '49.99',
+        
+        subtotal: '89.97',
+        shipping_cost: '9.99',
+        tax_amount: '7.20',
+        order_total: '107.16',
+        
+        payment_method: 'Credit Card',
+        shipping_method: 'Express',
+        order_status: 'Processing'
+      };
+
+      const response = await emailjs.send(
+        EMAILJS_CONFIG.SERVICE_ID,
+        EMAILJS_CONFIG.TEMPLATE_ID,
+        testTemplateParams,
+        EMAILJS_CONFIG.PUBLIC_KEY
+      );
+      
+      showModalMessage(
+        '✅ Test Successful',
+        'Test email has been sent to stargoe8@gmail.com. Please check your inbox.',
+        'success'
+      );
+      
+    } catch (error) {
+      showModalMessage(
+        '❌ Test Failed',
+        `Error sending test email:\n${error.text || error.message}`,
+        'error'
+      );
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Валидация
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      // Прокрутка к первой ошибке
-      const firstErrorField = Object.keys(validationErrors)[0];
-      document.querySelector(`[name="${firstErrorField}"]`)?.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      showModalMessage('Empty Cart', 'Your cart is empty! Please add items before checking out.', 'warning');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Генерируем ID заказа
       const newOrderId = 'ORD' + Date.now().toString().slice(-8);
       setOrderId(newOrderId);
 
-      // Создаем объект заказа
       const order = {
         id: newOrderId,
         date: new Date().toISOString(),
-        items: cartItems,
+        items: cartItems.map(item => {
+          const itemName = item.name || 'Product ' + (cartItems.indexOf(item) + 1);
+          const itemColor = item.color || 'Standard';
+          const itemSize = item.size || 'One Size';
+          const itemQuantity = item.quantity || 1;
+          const itemPrice = item.price || 0;
+          const hasDiscount = item.hasDiscount || false;
+          const discount = item.discount || 0;
+          
+          return {
+            ...item,
+            name: itemName,
+            color: itemColor,
+            size: itemSize,
+            quantity: itemQuantity,
+            price: itemPrice,
+            hasDiscount: hasDiscount,
+            discount: discount
+          };
+        }),
         customer: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+          city: formData.city.trim(),
           country: formData.country,
-          state: formData.state,
-          zipCode: formData.zipCode
+          zipCode: formData.zipCode.trim()
         },
         shipping: {
-          method: formData.shippingMethod,
+          method: 'Standard',
           cost: calculateShipping()
         },
         payment: {
-          method: formData.paymentMethod,
-          lastFour: formData.paymentMethod === 'creditCard' 
-            ? formData.cardNumber.slice(-4) 
-            : null
+          method: 'Card',
+          status: 'Paid'
         },
         subtotal: calculateSubtotal(),
         tax: calculateTax(),
@@ -189,108 +413,103 @@ function Checkout() {
         status: 'Processing'
       };
 
-      // Сохраняем заказ
-      const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
-      localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
+      const emailSent = await sendOrderEmail(order);
       
-      // Очищаем корзину
+      if (!emailSent) {
+        showModalMessage(
+          '⚠️ Email Not Sent',
+          'Order placed successfully, but there was an issue sending the confirmation email. Your order has been saved.',
+          'warning'
+        );
+      }
+
+      try {
+        const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
+      } catch (error) {
+        console.error('Error saving order to localStorage:', error);
+        localStorage.setItem('orders', JSON.stringify([order]));
+      }
+
       localStorage.removeItem('cart');
       window.dispatchEvent(new Event('cartUpdated'));
 
-      // Сохраняем информацию пользователя, если нужно
-      if (formData.saveInfo) {
-        localStorage.setItem('userInfo', JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone
-        }));
-      }
-
-      // Имитируем задержку API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Показываем успешное сообщение
       setOrderSuccess(true);
 
     } catch (error) {
-      console.error('Order submission error:', error);
-      alert('There was an error processing your order. Please try again.');
+      console.error('Ошибка оформления заказа:', error);
+      showModalMessage(
+        'Order Processing Error',
+        'There was an error processing your order. Please try again.',
+        'error'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Форматирование карты
-  const formatCardNumber = (value) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
-    const parts = [];
-    
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
-  };
-
-  // Форматирование даты
-  const formatExpiryDate = (value) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
-    }
-    return v;
-  };
-
-  // Обработка форматирования полей
-  const handleCardNumberChange = (e) => {
-    const formatted = formatCardNumber(e.target.value);
-    setFormData(prev => ({ ...prev, cardNumber: formatted }));
-  };
-
-  const handleExpiryChange = (e) => {
-    const formatted = formatExpiryDate(e.target.value);
-    setFormData(prev => ({ ...prev, cardExpiry: formatted }));
-  };
-
-  // Вернуться к покупкам
   const handleContinueShopping = () => {
     navigate('/');
   };
 
-  // Просмотр заказов
   const handleViewOrders = () => {
     navigate('/orders');
   };
 
-  // Загрузка сохраненной информации пользователя
-  useEffect(() => {
-    const savedUserInfo = localStorage.getItem('userInfo');
-    if (savedUserInfo) {
-      try {
-        const userInfo = JSON.parse(savedUserInfo);
-        setFormData(prev => ({
-          ...prev,
-          firstName: userInfo.firstName || '',
-          lastName: userInfo.lastName || '',
-          email: userInfo.email || '',
-          phone: userInfo.phone || '',
-          saveInfo: true
-        }));
-      } catch (error) {
-        console.error('Error loading saved user info:', error);
+  // Проверка отправки email
+  const checkEmailStatus = () => {
+    try {
+      const lastEmail = localStorage.getItem('last_email_sent');
+      const lastError = localStorage.getItem('last_email_error');
+      
+      let message = '';
+      
+      if (lastEmail) {
+        const emailData = JSON.parse(lastEmail);
+        message = `✅ Last order sent successfully\n\n`;
+        message += `Order ID: ${emailData.orderId}\n`;
+        message += `Customer: ${emailData.customer}\n`;
+        message += `Total: $${emailData.total}\n`;
+        message += `Sent: ${new Date(emailData.timestamp).toLocaleString()}\n\n`;
+        message += `Items:\n`;
+        emailData.items.forEach((item, index) => {
+          message += `${index + 1}. ${item.name} - ${item.color} - Size: ${item.size} - Qty: ${item.quantity}\n`;
+        });
+        
+        showModalMessage('📧 Email Status', message, 'success');
+      } else {
+        showModalMessage('📧 Email Status', 'No email sending data found.', 'info');
       }
+      
+      if (lastError) {
+        const errorData = JSON.parse(lastError);
+        showModalMessage('❌ Last Email Error', errorData.error, 'error');
+      }
+    } catch (error) {
+      showModalMessage('Error', 'Error checking email status', 'error');
     }
-  }, []);
+  };
 
   return (
     <div className="checkout-container">
+      {/* Модальное окно */}
+      {showModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className={`modal-header ${modalContent.type}`}>
+              <h3>{modalContent.title}</h3>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <pre>{modalContent.message}</pre>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-ok-btn" onClick={closeModal}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="checkout-header">
         <h1>Checkout</h1>
         <div className="checkout-steps">
@@ -317,8 +536,9 @@ function Checkout() {
           <h2>Order Confirmed!</h2>
           <p className="order-id">Order ID: <strong>{orderId}</strong></p>
           <p className="success-message">
-            Thank you for your purchase! A confirmation email has been sent to {formData.email}.<br />
-            Your order will be shipped within 2-3 business days.
+            ✅ Thank you for your order! <br/>
+            ✅ Order details sent to <strong>stargoe8@gmail.com</strong> <br/>
+            ✅ Your order will be processed within 1-2 business days.
           </p>
           
           <div className="order-summary-card">
@@ -361,7 +581,6 @@ function Checkout() {
           <div className="checkout-form-section">
             <form onSubmit={handleSubmit} className="checkout-form">
               
-              {/* Контактная информация */}
               <section className="form-section">
                 <h3>Contact Information</h3>
                 <div className="form-row">
@@ -431,7 +650,6 @@ function Checkout() {
                 </div>
               </section>
 
-              {/* Адрес доставки */}
               <section className="form-section">
                 <h3>Shipping Address</h3>
                 <div className="form-group">
@@ -478,24 +696,11 @@ function Checkout() {
                       <option value="Canada">Canada</option>
                       <option value="United Kingdom">United Kingdom</option>
                       <option value="Australia">Australia</option>
-                      <option value="Germany">Germany</option>
-                      <option value="France">France</option>
                     </select>
                   </div>
                 </div>
                 
                 <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="state">State / Province</label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                      placeholder="NY"
-                    />
-                  </div>
                   <div className="form-group">
                     <label htmlFor="zipCode">
                       ZIP / Postal Code *
@@ -514,190 +719,7 @@ function Checkout() {
                 </div>
               </section>
 
-              {/* Способ доставки */}
               <section className="form-section">
-                <h3>Shipping Method</h3>
-                <div className="shipping-options">
-                  <label className="shipping-option">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      value="standard"
-                      checked={formData.shippingMethod === 'standard'}
-                      onChange={handleInputChange}
-                    />
-                    <div className="option-content">
-                      <span className="option-title">Standard Shipping</span>
-                      <span className="option-duration">5-7 business days</span>
-                      <span className="option-price">$4.99</span>
-                    </div>
-                  </label>
-                  
-                  <label className="shipping-option">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      value="priority"
-                      checked={formData.shippingMethod === 'priority'}
-                      onChange={handleInputChange}
-                    />
-                    <div className="option-content">
-                      <span className="option-title">Priority Shipping</span>
-                      <span className="option-duration">3-5 business days</span>
-                      <span className="option-price">$9.99</span>
-                    </div>
-                  </label>
-                  
-                  <label className="shipping-option">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      value="express"
-                      checked={formData.shippingMethod === 'express'}
-                      onChange={handleInputChange}
-                    />
-                    <div className="option-content">
-                      <span className="option-title">Express Shipping</span>
-                      <span className="option-duration">1-2 business days</span>
-                      <span className="option-price">$15.99</span>
-                    </div>
-                  </label>
-                </div>
-              </section>
-
-              {/* Способ оплаты */}
-              <section className="form-section">
-                <h3>Payment Method</h3>
-                <div className="payment-methods">
-                  <label className="payment-method">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="creditCard"
-                      checked={formData.paymentMethod === 'creditCard'}
-                      onChange={handleInputChange}
-                    />
-                    <span>Credit Card</span>
-                  </label>
-                  <label className="payment-method">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="paypal"
-                      checked={formData.paymentMethod === 'paypal'}
-                      onChange={handleInputChange}
-                    />
-                    <span>PayPal</span>
-                  </label>
-                  <label className="payment-method">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="applePay"
-                      checked={formData.paymentMethod === 'applePay'}
-                      onChange={handleInputChange}
-                    />
-                    <span>Apple Pay</span>
-                  </label>
-                </div>
-
-                {formData.paymentMethod === 'creditCard' && (
-                  <div className="card-details">
-                    <div className="form-group">
-                      <label htmlFor="cardNumber">
-                        Card Number *
-                        {errors.cardNumber && <span className="error-text"> - {errors.cardNumber}</span>}
-                      </label>
-                      <input
-                        type="text"
-                        id="cardNumber"
-                        name="cardNumber"
-                        value={formData.cardNumber}
-                        onChange={handleCardNumberChange}
-                        className={errors.cardNumber ? 'error' : ''}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength="19"
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="cardName">
-                        Name on Card *
-                        {errors.cardName && <span className="error-text"> - {errors.cardName}</span>}
-                      </label>
-                      <input
-                        type="text"
-                        id="cardName"
-                        name="cardName"
-                        value={formData.cardName}
-                        onChange={handleInputChange}
-                        className={errors.cardName ? 'error' : ''}
-                        placeholder="John Doe"
-                      />
-                    </div>
-                    
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="cardExpiry">
-                          Expiry Date (MM/YY) *
-                          {errors.cardExpiry && <span className="error-text"> - {errors.cardExpiry}</span>}
-                        </label>
-                        <input
-                          type="text"
-                          id="cardExpiry"
-                          name="cardExpiry"
-                          value={formData.cardExpiry}
-                          onChange={handleExpiryChange}
-                          className={errors.cardExpiry ? 'error' : ''}
-                          placeholder="MM/YY"
-                          maxLength="5"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="cardCVC">
-                          CVC *
-                          {errors.cardCVC && <span className="error-text"> - {errors.cardCVC}</span>}
-                        </label>
-                        <input
-                          type="text"
-                          id="cardCVC"
-                          name="cardCVC"
-                          value={formData.cardCVC}
-                          onChange={handleInputChange}
-                          className={errors.cardCVC ? 'error' : ''}
-                          placeholder="123"
-                          maxLength="4"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {formData.paymentMethod === 'paypal' && (
-                  <div className="paypal-note">
-                    <p>You will be redirected to PayPal to complete your payment.</p>
-                  </div>
-                )}
-                
-                {formData.paymentMethod === 'applePay' && (
-                  <div className="apple-pay-note">
-                    <p>You will be redirected to Apple Pay to complete your payment.</p>
-                  </div>
-                )}
-              </section>
-
-              {/* Сохранение информации и соглашение */}
-              <section className="form-section">
-                <label className="checkbox-option">
-                  <input
-                    type="checkbox"
-                    name="saveInfo"
-                    checked={formData.saveInfo}
-                    onChange={handleInputChange}
-                  />
-                  <span>Save this information for next time</span>
-                </label>
-                
                 <label className="checkbox-option">
                   <input
                     type="checkbox"
@@ -712,7 +734,15 @@ function Checkout() {
                 </label>
               </section>
 
-              {/* Кнопка отправки */}
+              <div className="email-notice-box">
+                <h4>📧 Email Notifications</h4>
+                <p>Order confirmation will be sent to:</p>
+                <ul>
+                  <li><strong>You:</strong> {formData.email || '[your email]'}</li>
+                  <li><strong>Store Owner:</strong> stargoe8@gmail.com</li>
+                </ul>
+              </div>
+
               <div className="form-actions">
                 <button 
                   type="button" 
@@ -724,18 +754,17 @@ function Checkout() {
                 <button 
                   type="submit" 
                   className="submit-order"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || cartItems.length === 0}
                 >
-                  {isSubmitting ? 'Processing...' : `Pay $${calculateTotal()}`}
+                  {isSubmitting ? 'Processing...' : `Complete Order - $${calculateTotal()}`}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* Боковая панель с итогами */}
           <div className="order-summary-sidebar">
             <div className="summary-card">
-              <h3>Order Summary</h3>
+              <h3>Order Summary ({cartItems.length} items)</h3>
               
               <div className="cart-items-preview">
                 {cartItems.map((item, index) => {
@@ -745,20 +774,21 @@ function Checkout() {
                   return (
                     <div key={index} className="preview-item">
                       <img 
-                        src={item.imageUrl} 
+                        src={item.imageUrl || 'https://via.placeholder.com/60x80/cccccc/ffffff?text=Product'}
                         alt={item.name}
                         onError={(e) => {
                           e.target.src = 'https://via.placeholder.com/60x80/cccccc/ffffff?text=Product';
                         }}
                       />
                       <div className="preview-info">
-                        <span className="preview-name">{item.name}</span>
+                        <span className="preview-name">{item.name || 'Product'}</span>
                         <span className="preview-details">
                           {item.color && `${item.color}, `}
-                          {item.size && `Size: ${item.size}, `}
-                          Qty: {item.quantity}
+                          {item.size && `Size: ${item.size}`}
+                          <br/>
+                          Qty: {item.quantity || 1}
                         </span>
-                        <span className="preview-price">${(price * item.quantity).toFixed(2)}</span>
+                        <span className="preview-price">${((price || 0) * (item.quantity || 1)).toFixed(2)}</span>
                       </div>
                     </div>
                   );
@@ -784,25 +814,134 @@ function Checkout() {
                 </div>
               </div>
               
-              <div className="security-info">
-                <div className="security-item">
-                  <span className="lock-icon">🔒</span>
-                  <span>Secure checkout</span>
-                </div>
-                <div className="security-item">
-                  <span className="shield-icon">🛡️</span>
-                  <span>SSL encrypted</span>
-                </div>
+              <div className="email-notice">
+                <p><strong>stargoe8@gmail.com</strong> will receive complete order details including:</p>
+                <ul className="email-details-list">
+                  <li>✅ Customer name and contact info</li>
+                  <li>✅ Shipping address</li>
+                  <li>✅ Item details (color, size, quantity)</li>
+                  <li>✅ Order total and breakdown</li>
+                </ul>
               </div>
-            </div>
-            
-            <div className="need-help">
-              <h4>Need Help?</h4>
-              <p>Contact us at support@example.com or call (555) 123-4567</p>
             </div>
           </div>
         </div>
       )}
+
+      {/* Стили для модального окна */}
+      <style jsx>{`
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        
+        .modal-content {
+          background: white;
+          border-radius: 12px;
+          width: 90%;
+          max-width: 500px;
+          max-height: 80vh;
+          overflow: hidden;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px;
+          border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header.success {
+          background: linear-gradient(135deg, #4CAF50, #45a049);
+          color: white;
+        }
+        
+        .modal-header.error {
+          background: linear-gradient(135deg, #f44336, #d32f2f);
+          color: white;
+        }
+        
+        .modal-header.warning {
+          background: linear-gradient(135deg, #FF9800, #F57C00);
+          color: white;
+        }
+        
+        .modal-header.info {
+          background: linear-gradient(135deg, #2196F3, #1976D2);
+          color: white;
+        }
+        
+        .modal-header h3 {
+          margin: 0;
+          font-size: 20px;
+        }
+        
+        .modal-close {
+          background: none;
+          border: none;
+          font-size: 28px;
+          color: inherit;
+          cursor: pointer;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.8;
+        }
+        
+        .modal-close:hover {
+          opacity: 1;
+        }
+        
+        .modal-body {
+          padding: 25px;
+          max-height: 50vh;
+          overflow-y: auto;
+        }
+        
+        .modal-body pre {
+          margin: 0;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          font-family: inherit;
+          font-size: 14px;
+          line-height: 1.5;
+          color: #333;
+        }
+        
+        .modal-footer {
+          padding: 20px;
+          border-top: 1px solid #eee;
+          text-align: right;
+        }
+        
+        .modal-ok-btn {
+          background: #4CAF50;
+          color: white;
+          border: none;
+          padding: 10px 30px;
+          border-radius: 6px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background 0.3s;
+        }
+        
+        .modal-ok-btn:hover {
+          background: #45a049;
+        }
+      `}</style>
     </div>
   );
 }

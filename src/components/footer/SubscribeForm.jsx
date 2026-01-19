@@ -12,7 +12,7 @@ export default function SubscribeForm() {
   const [history, setHistory] = useState([]);
   const [clickAnimation, setClickAnimation] = useState("");
 
-  // Загружаем историю при монтировании
+  
   useEffect(() => {
     const savedHistory = localStorage.getItem('subscribeHistory');
     if (savedHistory) {
@@ -23,14 +23,14 @@ export default function SubscribeForm() {
   const handleCategoryClick = (item) => {
     setCategory(item);
     
-    // Анимация выбора
+    
     setClickAnimation(`category-${item.toLowerCase()}`);
     setTimeout(() => setClickAnimation(""), 500);
     
-    // Звуковой эффект (имитация)
+  
     console.log(`Selected category: ${item}`);
     
-    // Показываем быстое уведомление
+   
     const quickMessage = document.createElement('div');
     quickMessage.className = 'quick-notification';
     quickMessage.textContent = `🎯 ${item} category selected`;
@@ -43,13 +43,13 @@ export default function SubscribeForm() {
   };
 
   const handleEmailClick = (e) => {
-    // Подсветка поля при клике
+    
     e.target.parentElement.classList.add('active-input');
     setTimeout(() => {
       e.target.parentElement.classList.remove('active-input');
     }, 1000);
     
-    // Если поле пустое, добавляем подсказку
+    
     if (!email) {
       const placeholder = e.target.placeholder;
       e.target.placeholder = "example@email.com";

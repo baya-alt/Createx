@@ -18,20 +18,40 @@
   font-size: 14px;
   margin-bottom: 16px;
   letter-spacing: 1px;
+  color: #ffffff;
 }
 
-.footer-col a,
 .footer-col p {
   font-size: 13px;
   color: #9a9ca5;
-  text-decoration: none;
-  display: block;
   margin-bottom: 10px;
-  transition: color 0.2s;
+  line-height: 1.5;
 }
 
-.footer-col a:hover {
-  color: #fff;
+/* Стили для кнопок-ссылок */
+.footer-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 10px 0;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  color: #9a9ca5;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #ffffff;
+}
+
+/* Стили для реальных ссылок (социальные сети) */
+.footer-social a {
+  color: #9a9ca5;
+  text-decoration: none;
 }
 
 .footer-social {
@@ -57,12 +77,19 @@
   transform: translateY(-2px);
 }
 
+/* Стили для кнопок приложений */
 .footer-apps img {
   width: 120px;
   margin-bottom: 10px;
   cursor: pointer;
+  transition: opacity 0.2s;
 }
 
+.footer-apps img:hover {
+  opacity: 0.8;
+}
+
+/* Футер снизу */
 .footer-bottom {
   border-top: 1px solid #2b2f3a;
   padding: 20px;
@@ -73,12 +100,20 @@
   color: #9a9ca5;
 }
 
-.footer-bottom .go-top {
+/* Кнопка "Go to top" */
+.go-top {
+  background: none;
+  border: none;
   color: #9a9ca5;
   text-decoration: none;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
 }
 
-.footer-bottom .go-top:hover {
+.go-top:hover {
   color: #fff;
 }
 
@@ -92,5 +127,27 @@
   .footer-bottom {
     flex-direction: column;
     gap: 10px;
+    text-align: center;
+  }
+  
+  .footer-apps img {
+    width: 100px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .footer-top {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+  
+  .footer-social {
+    justify-content: center;
+  }
+  
+  .footer-link {
+    text-align: center;
   }
 }

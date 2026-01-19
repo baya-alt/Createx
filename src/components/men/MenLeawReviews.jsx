@@ -17,6 +17,9 @@ export default function MenLeaveReview({ onClose, onReviewSubmit }) {
     review: ""
   });
 
+  // Vite-safe env access (avoid "process is not defined" in browser)
+  const ENV = (typeof import.meta !== "undefined" && import.meta.env) ? import.meta.env : {};
+
   const handleRatingClick = (value) => {
     setRating(value);
   };
@@ -110,8 +113,13 @@ export default function MenLeaveReview({ onClose, onReviewSubmit }) {
         timestamp: Date.now()
       };
 
-      // Отправка через EmailJS (опционально)
-      if (process.env.REACT_APP_EMAILJS_SERVICE_ID) {
+      // Отправка через EmailJS (опционально, не блокируем UI если env не настроены)
+      // Для Vite используйте переменные: VITE_EMAILJS_SERVICE_ID / VITE_EMAILJS_TEMPLATE_ID / VITE_EMAILJS_PUBLIC_KEY
+      const serviceId = ENV.VITE_EMAILJS_SERVICE_ID;
+      const templateId = ENV.VITE_EMAILJS_TEMPLATE_ID;
+      const publicKey = ENV.VITE_EMAILJS_PUBLIC_KEY;
+
+      if (serviceId && templateId && publicKey) {
         const templateParams = {
           name: formData.name,
           email: formData.email,
@@ -122,10 +130,10 @@ export default function MenLeaveReview({ onClose, onReviewSubmit }) {
         };
 
         await emailjs.send(
-          process.env.REACT_APP_EMAILJS_SERVICE_ID || "service_3xr5mic",
-          process.env.REACT_APP_EMAILJS_TEMPLATE_ID || "template_c9iwede",
+          serviceId,
+          templateId,
           templateParams,
-          process.env.REACT_APP_EMAILJS_PUBLIC_KEY || "wsSENBngvAWsgS0zB"
+          publicKey
         );
       }
 
@@ -214,7 +222,7 @@ export default function MenLeaveReview({ onClose, onReviewSubmit }) {
                   )}
                 </button>
               ))}
-              <span className="rating-text">
+              <span className="rating-text-men">
                 {rating > 0 ? `${rating} star${rating > 1 ? 's' : ''}` : "Select your rating"}
               </span>
             </div>
@@ -297,6 +305,21 @@ export default function MenLeaveReview({ onClose, onReviewSubmit }) {
             </button>
           </div>
         </form>
+        {/* Local style to avoid global .rating-text from Orders.css affecting this modal */}
+        <style>{`
+          .rating-text-men {
+            display: inline-block;
+            margin-left: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e8ed;
+            background: #f8f9fa;
+            color: #787a80;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.2;
+          }
+        `}</style>
       </div>
     </div>
   );

@@ -2,10 +2,12 @@ import React from "react";
 import MenProductDetailsTab from "./MenProductDetailsTab";
 import MenProductPageContent from "./MenProductPageContent";
 import MenReviews from "./MenReviews";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 import "./MenProductTabs.css";
 
 function MenProductTabs({ activeTab, setActiveTab, product }) {
+  const { t } = useLanguage();
   return (
     <>
       <div className="product-tabs">
@@ -13,19 +15,19 @@ function MenProductTabs({ activeTab, setActiveTab, product }) {
           className={activeTab === "info" ? "active" : ""} 
           onClick={() => setActiveTab("info")}
         >
-          General info
+          {t("productTabs.generalInfo")}
         </button>
         <button 
           className={activeTab === "details" ? "active" : ""} 
           onClick={() => setActiveTab("details")}
         >
-          Product details
+          {t("productTabs.productDetails")}
         </button>
         <button 
           className={activeTab === "reviews" ? "active" : ""} 
           onClick={() => setActiveTab("reviews")}
         >
-          Reviews <span>12</span>
+          {t("productTabs.reviews")} <span>12</span>
         </button>
       </div>
 

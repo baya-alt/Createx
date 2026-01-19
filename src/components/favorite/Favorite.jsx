@@ -1,9 +1,7 @@
 import "./favorite.css";
 import { useEffect, useState } from "react";
 
-/* ================= КОМПОНЕНТЫ УВЕДОМЛЕНИЙ ================= */
 
-// 1. Уведомление "Added to Cart"
 function CartAddedNotification({ isOpen, onClose, product, size, color, quantity, onViewCart }) {
     const [isVisible, setIsVisible] = useState(isOpen);
     const [isHiding, setIsHiding] = useState(false);
@@ -147,7 +145,7 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
     );
 }
 
-// 2. Уведомление об удалении из избранного
+
 function FavoriteRemovedNotification({ isOpen, onClose, onUndo, product }) {
     const [isVisible, setIsVisible] = useState(isOpen);
     const [isHiding, setIsHiding] = useState(false);
@@ -242,7 +240,7 @@ function FavoriteRemovedNotification({ isOpen, onClose, onUndo, product }) {
     );
 }
 
-/* ================= ФУНКЦИИ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ================= */
+
 
 const addToCartFromFavorites = (item, size = "M", quantity = 1) => {
     const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -283,29 +281,29 @@ const addToCartFromFavorites = (item, size = "M", quantity = 1) => {
     return cartItem;
 };
 
-/* ================= КОМПОНЕНТ FAVORITE ================= */
+
 
 export default function Favorite({ open, onClose }) {
     const [favorites, setFavorites] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // Состояния для уведомлений
+   
     const [showCartAdded, setShowCartAdded] = useState(false);
     const [showFavoriteRemoved, setShowFavoriteRemoved] = useState(false);
     
-    // Данные для уведомлений
+   
     const [cartNotificationData, setCartNotificationData] = useState(null);
     const [favoriteNotificationData, setFavoriteNotificationData] = useState(null);
     const [lastRemovedItem, setLastRemovedItem] = useState(null);
 
-    // Загружаем избранное из localStorage
+    
     useEffect(() => {
         if (open) {
             loadFavorites();
         }
     }, [open]);
 
-    // Слушаем события обновления избранного
+    
     useEffect(() => {
         const handleFavoritesUpdated = () => {
             loadFavorites();
@@ -336,10 +334,10 @@ export default function Favorite({ open, onClose }) {
             localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
             setFavorites(updatedFavorites);
             
-            // Сохраняем удаленный товар для возможности отмены
+            
             setLastRemovedItem(item);
             
-            // Показываем уведомление об удалении
+            
             setFavoriteNotificationData({
                 product: {
                     ...item,
@@ -350,7 +348,7 @@ export default function Favorite({ open, onClose }) {
             });
             setShowFavoriteRemoved(true);
             
-            // Триггерим событие обновления
+            
             window.dispatchEvent(new Event('favoritesUpdated'));
             
             console.log("Removed favorite:", item.id);
@@ -362,7 +360,7 @@ export default function Favorite({ open, onClose }) {
     const handleAddToCart = (item) => {
         const cartItem = addToCartFromFavorites(item);
         
-        // Показываем уведомление о добавлении в корзину
+        
         setCartNotificationData({
             product: {
                 ...item,
@@ -376,13 +374,13 @@ export default function Favorite({ open, onClose }) {
         });
         setShowCartAdded(true);
         
-        // Закрываем панель избранного
+        
         setTimeout(() => {
             onClose();
         }, 500);
     };
 
-    // Обработчик отмены удаления из избранного
+    
     const handleUndoRemoveFavorite = () => {
         if (lastRemovedItem) {
             try {
@@ -391,7 +389,7 @@ export default function Favorite({ open, onClose }) {
                 localStorage.setItem('favorites', JSON.stringify(storedFavorites));
                 setFavorites(storedFavorites);
                 
-                // Триггерим событие обновления
+                
                 window.dispatchEvent(new Event('favoritesUpdated'));
                 
                 setLastRemovedItem(null);
@@ -402,14 +400,14 @@ export default function Favorite({ open, onClose }) {
         }
     };
 
-    // Обработчик открытия корзины
+    
     const handleViewCart = () => {
-        // Закрываем панель избранного
+        
         onClose();
         
-        // Здесь можно добавить логику открытия корзины
+        
         console.log("Opening cart...");
-        // Например: window.dispatchEvent(new Event('openCart'));
+        
     };
 
     const calculateTotal = () => {
@@ -462,7 +460,7 @@ export default function Favorite({ open, onClose }) {
                             className="view-all-btn"
                             onClick={() => {
                                 console.log("Navigate to favorites page");
-                                // Здесь можно добавить навигацию на страницу избранного
+                                
                             }}
                         >
                             View All Favorites
@@ -471,8 +469,7 @@ export default function Favorite({ open, onClose }) {
                 )}
             </div>
 
-            {/* УВЕДОМЛЕНИЯ */}
-            {/* ADDED TO CART NOTIFICATION */}
+            
             {showCartAdded && cartNotificationData && (
                 <CartAddedNotification
                     isOpen={showCartAdded}
@@ -485,7 +482,7 @@ export default function Favorite({ open, onClose }) {
                 />
             )}
 
-            {/* FAVORITE REMOVED NOTIFICATION */}
+            
             {showFavoriteRemoved && favoriteNotificationData && (
                 <FavoriteRemovedNotification
                     isOpen={showFavoriteRemoved}
@@ -549,7 +546,7 @@ function FavoriteItem({ item, onRemove, onAddToCart }) {
     );
 }
 
-// Вспомогательная функция для получения цвета
+
 function getColorHex(colorName) {
     const colors = {
         black: '#000000',

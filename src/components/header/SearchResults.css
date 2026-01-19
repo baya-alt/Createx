@@ -1,0 +1,227 @@
+/* src/components/search/search-results.css */
+.search-results-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.search-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.search-header h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.search-query {
+  font-size: 1rem;
+  color: #666;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  text-align: center;
+  padding: 40px;
+  background-color: #fee;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.error-message p {
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
+.error-message button {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-results h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.no-results p {
+  color: #666;
+}
+
+.search-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+  padding: 20px 0;
+}
+
+.product-card {
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: white;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.product-image {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.05);
+}
+
+.sale-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #e74c3c;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.product-info {
+  padding: 20px;
+}
+
+.product-name {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.product-category {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.current-price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.original-price {
+  font-size: 1rem;
+  color: #888;
+  text-decoration: line-through;
+}
+
+@media (max-width: 768px) {
+  .search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .product-image {
+    height: 200px;
+  }
+}
+/* Добавьте эти стили в SearchResults.css */
+
+.category-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #17696A;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.product-image {
+  position: relative;
+}
+
+.sale-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+/* Если есть оба бейджа (скидка и категория) */
+.product-image .category-badge + .sale-badge {
+  top: 40px; /* Смещаем скидку ниже, чтобы не перекрывать категорию */
+}
+
+.product-card:hover .category-badge {
+  transform: scale(1.05);
+}
+
+/* Адаптивность для бейджей */
+@media (max-width: 768px) {
+  .category-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  
+  .product-image .category-badge + .sale-badge {
+    top: 35px;
+  }
+}

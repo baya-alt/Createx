@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { loadReviews, saveReviews } from "../../utils/reviewsStorage";
+import { fetchReviews, createReview, updateReview } from "../../utils/reviewsApi";
 import { 
   FaStar, 
   FaRegStar, 
@@ -10,9 +12,11 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaTimes,
-  FaCheck
+  FaCheck,
+  FaUser,
+  FaPaperPlane,
+  FaImage
 } from "react-icons/fa";
-import LeaveReview from "./LeaveReview";
 import "./rewiew.css";
 
 // БОЛЬШЕ ОТЗЫВОВ - ТЕПЕРЬ 12 ШТУК
@@ -179,6 +183,308 @@ const SORT_OPTIONS = {
   MOST_DISLIKES: "most dislikes"
 };
 
+/* ================= КОМПОНЕНТ МОДАЛЬНОГО ОКНА ДЛЯ ОТЗЫВОВ ================= */
+
+function LeaveReview({ onClose, onReviewSubmit }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    rating: 0,
+    reviewText: "",
+    imagePreview: null,
+    imageFile: null
+  });
+  
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleRatingClick = (value) => {
+    setFormData(prev => ({ ...prev, rating: value }));
+    if (formErrors.rating) {
+      setFormErrors(prev => ({ ...prev, rating: "" }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setFormErrors(prev => ({ ...prev, image: "Image size should be less than 5MB" }));
+        return;
+      }
+
+      if (!file.type.match('image.*')) {
+        setFormErrors(prev => ({ ...prev, image: "Please select an image file" }));
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, imageFile: file }));
+      setFormErrors(prev => ({ ...prev, image: "" }));
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imagePreview: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, imagePreview: null, imageFile: null }));
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) errors.name = "Name is required";
+    if (!formData.email.trim()) errors.email = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) errors.email = "Please enter a valid email";
+    if (formData.rating === 0) errors.rating = "Please select a rating";
+    if (!formData.reviewText.trim()) errors.reviewText = "Review text is required";
+    if (formData.reviewText.length > 2000) errors.reviewText = "Review text is too long (max 2000 characters)";
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Здесь должна быть логика загрузки изображения на сервер
+      // Для демо просто используем локальный URL
+      let imageUrl = formData.imagePreview;
+
+      const newReview = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        rating: formData.rating,
+        text: formData.reviewText.trim(),
+        date: "Just now",
+        imageUrl
+      };
+
+      onReviewSubmit(newReview);
+      
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      setFormErrors(prev => ({ 
+        ...prev, 
+        submit: "Failed to submit review. Please try again." 
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      rating: 0,
+      reviewText: "",
+      imagePreview: null,
+      imageFile: null
+    });
+    setFormErrors({});
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">Leave a Review</h2>
+          <button className="modal-close-btn" onClick={handleClose}>
+            <FaTimes />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="review-form">
+          <div className="form-row">
+            <div className="form-group" data-error={!!formErrors.name}>
+              <label htmlFor="name" className="form-label">
+                Your Name *
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={`form-input ${formErrors.name ? 'error' : ''}`}
+              />
+              {formErrors.name && <span className="error-message">{formErrors.name}</span>}
+            </div>
+
+            <div className="form-group" data-error={!!formErrors.email}>
+              <label htmlFor="email" className="form-label">
+                Your Email *
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={`form-input ${formErrors.email ? 'error' : ''}`}
+              />
+              {formErrors.email && <span className="error-message">{formErrors.email}</span>}
+            </div>
+          </div>
+
+          <div className="form-group" data-error={!!formErrors.rating}>
+            <label className="form-label">Your Rating *</label>
+            <div className="rating-stars-modal">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`star-btn ${star <= formData.rating ? 'active' : ''}`}
+                  onClick={() => handleRatingClick(star)}
+                  disabled={isSubmitting}
+                >
+                  {star <= formData.rating ? (
+                    <FaStar className="star-filled" />
+                  ) : (
+                    <FaRegStar className="star-empty" />
+                  )}
+                </button>
+              ))}
+              <span className={`rating-text-modal ${formData.rating === 0 ? "is-empty" : ""}`}>
+                {formData.rating > 0 ? `${formData.rating} star${formData.rating > 1 ? 's' : ''}` : "Select your rating"}
+              </span>
+            </div>
+            {formErrors.rating && <span className="error-message">{formErrors.rating}</span>}
+          </div>
+
+          <div className="form-group" data-error={!!formErrors.reviewText}>
+            <label htmlFor="reviewText" className="form-label">
+              Your Review *
+            </label>
+            <textarea
+              id="reviewText"
+              name="reviewText"
+              placeholder="Share your detailed experience with this product..."
+              value={formData.reviewText}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              rows="6"
+              className={`form-textarea ${formErrors.reviewText ? 'error' : ''}`}
+              maxLength="2000"
+            />
+            {formErrors.reviewText && <span className="error-message">{formErrors.reviewText}</span>}
+            <div className="character-count">
+              {formData.reviewText.length}/2000 characters
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Upload Photo (Optional)</label>
+            {formData.imagePreview ? (
+              <div className="image-preview">
+                <div className="preview-image-wrapper">
+                  <img src={formData.imagePreview} alt="Preview" />
+                  <button 
+                    type="button" 
+                    className="remove-preview-btn"
+                    onClick={removeImage}
+                    disabled={isSubmitting}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                <span className="image-hint">Click the X to remove</span>
+              </div>
+            ) : (
+              <div className="image-upload">
+                <input
+                  type="file"
+                  id="imageUpload"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={isSubmitting}
+                  className="file-input-hidden"
+                />
+                <label htmlFor="imageUpload" className="upload-area">
+                  <FaImage className="upload-icon" />
+                  <div className="upload-text">
+                    <p>Click to upload photo</p>
+                    <p className="upload-hint">JPG, PNG or GIF • Max 5MB</p>
+                  </div>
+                </label>
+              </div>
+            )}
+            {formErrors.image && <span className="error-message">{formErrors.image}</span>}
+          </div>
+
+          {formErrors.submit && (
+            <div className="submit-error">
+              <span className="error-message">{formErrors.submit}</span>
+            </div>
+          )}
+
+          <div className="form-actions">
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="spinner"></span>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <FaPaperPlane className="submit-icon" />
+                  Submit Review
+                </>
+              )}
+            </button>
+            <button 
+              type="button" 
+              className="cancel-btn"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+          </div>
+
+          <div className="form-note">
+            <p className="note-text">
+              * Required fields. Your email will not be published.
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ================= КОМПОНЕНТЫ УВЕДОМЛЕНИЙ ================= */
 
 // 1. Уведомление об успешном добавлении отзыва
@@ -226,7 +532,9 @@ function ReviewAddedNotification({ isOpen, onClose, review }) {
         <div className="notification-body">
           <div className="review-preview">
             <div className="reviewer-avatar">
-              <span className="avatar-initials">Y</span>
+              <span className="avatar-initials">
+                {review.name.charAt(0).toUpperCase()}
+              </span>
             </div>
             <div className="review-content">
               <div className="review-rating">
@@ -238,7 +546,7 @@ function ReviewAddedNotification({ isOpen, onClose, review }) {
               </div>
               <p className="review-text-preview">{review.text.substring(0, 100)}...</p>
               <div className="review-meta">
-                <span className="review-author">Your review</span>
+                <span className="review-author">{review.name}</span>
                 <span className="review-date">Just now</span>
               </div>
             </div>
@@ -317,7 +625,7 @@ function FeedbackNotification({ isOpen, onClose, type, reviewAuthor }) {
   );
 }
 
-// 3. Уведомление о добавлении в корзину из карточки отзывов
+// 3. Уведомление о добавлении в корзину
 function CartNotification({ isOpen, onClose, product, size, color }) {
   const [isVisible, setIsVisible] = useState(isOpen);
   const [isHiding, setIsHiding] = useState(false);
@@ -374,7 +682,12 @@ function CartNotification({ isOpen, onClose, product, size, color }) {
                   <span className="cart-product-color">
                     <span 
                       className="cart-color-dot" 
-                      style={{ backgroundColor: color === 'black' ? '#000' : color === 'white' ? '#fff' : color === 'blue' ? '#3b82f6' : '#ef4444' }}
+                      style={{ 
+                        backgroundColor: color === 'black' ? '#000' : 
+                                       color === 'white' ? '#fff' : 
+                                       color === 'blue' ? '#3b82f6' : 
+                                       color === 'red' ? '#ef4444' : '#000' 
+                      }}
                     />
                     {color.charAt(0).toUpperCase() + color.slice(1)}
                   </span>
@@ -480,8 +793,36 @@ export default function Reviews() {
 }
 
 function ReviewsContent({ product }) {
-  // Состояние для отзывов
-  const [reviews, setReviews] = useState(allReviewsData);
+  // Состояние для отзывов (персистим в localStorage по product.id)
+  const [reviews, setReviews] = useState(() =>
+    loadReviews({ category: "women", productId: product.id, fallback: allReviewsData })
+  );
+
+  useEffect(() => {
+    setReviews(loadReviews({ category: "women", productId: product.id, fallback: allReviewsData }));
+  }, [product.id]);
+
+  useEffect(() => {
+    saveReviews({ category: "women", productId: product.id, reviews });
+  }, [product.id, reviews]);
+
+  // Пробуем подтянуть отзывы с MockAPI (если ресурс /reviews существует)
+  useEffect(() => {
+    let cancelled = false;
+    fetchReviews({ category: "women", productId: product.id })
+      .then((serverReviews) => {
+        if (cancelled) return;
+        if (Array.isArray(serverReviews) && serverReviews.length > 0) {
+          setReviews(serverReviews);
+        }
+      })
+      .catch(() => {
+        // тихо игнорируем: остаётся localStorage fallback
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
   
   // Состояние для сортировки
   const [sortBy, setSortBy] = useState(SORT_OPTIONS.NEWEST);
@@ -569,6 +910,20 @@ function ReviewsContent({ product }) {
       author: reviewAuthor
     });
     setShowFeedbackNotification(true);
+
+    // best-effort sync на сервер
+    const target = reviews.find(r => String(r.id) === String(reviewId));
+    if (target) {
+      const next = target.userLiked
+        ? { likes: Math.max(0, (target.likes || 0) - 1), userLiked: false, userDisliked: target.userDisliked }
+        : {
+            likes: (target.likes || 0) + 1,
+            dislikes: target.userDisliked ? Math.max(0, (target.dislikes || 0) - 1) : (target.dislikes || 0),
+            userLiked: true,
+            userDisliked: false,
+          };
+      updateReview({ category: "women", reviewId, patch: { ...target, ...next } }).catch(() => {});
+    }
   };
 
   // Функция для обработки дизлайков
@@ -605,6 +960,20 @@ function ReviewsContent({ product }) {
       author: reviewAuthor
     });
     setShowFeedbackNotification(true);
+
+    // best-effort sync на сервер
+    const target = reviews.find(r => String(r.id) === String(reviewId));
+    if (target) {
+      const next = target.userDisliked
+        ? { dislikes: Math.max(0, (target.dislikes || 0) - 1), userDisliked: false, userLiked: target.userLiked }
+        : {
+            dislikes: (target.dislikes || 0) + 1,
+            likes: target.userLiked ? Math.max(0, (target.likes || 0) - 1) : (target.likes || 0),
+            userLiked: false,
+            userDisliked: true,
+          };
+      updateReview({ category: "women", reviewId, patch: { ...target, ...next } }).catch(() => {});
+    }
   };
 
   // Функции для пагинации
@@ -612,10 +981,10 @@ function ReviewsContent({ product }) {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
       // Прокрутка вверх при смене страницы
-      window.scrollTo({
-        top: document.querySelector('.reviews-list').offsetTop - 100,
-        behavior: 'smooth'
-      });
+      const reviewsElement = document.querySelector('.reviews-list');
+      if (reviewsElement) {
+        reviewsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
@@ -671,6 +1040,13 @@ function ReviewsContent({ product }) {
     setShowReviewAdded(true);
     
     handleCloseReviewModal();
+
+    createReview({ category: "women", productId: product.id, review: reviewToAdd })
+      .then((created) => {
+        if (!created?.id) return;
+        setReviews(prev => prev.map(r => (r.id === reviewToAdd.id ? created : r)));
+      })
+      .catch(() => {});
   };
 
   // Формируем список доступных цветов
@@ -693,7 +1069,6 @@ function ReviewsContent({ product }) {
   const [index, setIndex] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeSize, setActiveSize] = useState("S");
-  const [rating, setRating] = useState(4);
 
   // Определяем активный цвет для подсветки точек
   const activeColorName = useMemo(() => {
@@ -734,26 +1109,52 @@ function ReviewsContent({ product }) {
     setShowCartNotification(true);
   };
 
-  // Данные статистики как на скриншоте
-  const statsData = [
-    { stars: 5, count: 7, percentage: 70, color: "#20c997" },
-    { stars: 4, count: 2, percentage: 20, color: "#5eead4" },
-    { stars: 3, count: 1, percentage: 10, color: "#ffc107" },
-    { stars: 2, count: 1, percentage: 10, color: "#fd7e14" },
-    { stars: 1, count: 1, percentage: 10, color: "#dc3545" },
-  ];
-
-  // Подсчёт общего рейтинга и статистики
-  const totalRating = useMemo(() => {
+  // Подсчёт реальной статистики на основе отзывов
+  const { statsData, totalRating } = useMemo(() => {
+    // Подсчет реальной статистики
     const ratings = reviews.filter(r => r.rating > 0).map(r => r.rating);
-    const average = ratings.length > 0 
-      ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+    const totalRatings = ratings.length;
+    
+    // Распределение по звездам
+    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    ratings.forEach(rating => {
+      ratingDistribution[rating]++;
+    });
+    
+    // Проценты
+    const stats = [5, 4, 3, 2, 1].map(stars => {
+      const count = ratingDistribution[stars];
+      const percentage = totalRatings > 0 ? Math.round((count / totalRatings) * 100) : 0;
+      
+      // Цвета для прогресс-баров
+      const colors = ["#20c997", "#5eead4", "#ffc107", "#fd7e14", "#dc3545"];
+      
+      return {
+        stars,
+        count,
+        percentage,
+        color: colors[5 - stars]
+      };
+    });
+    
+    // Общий рейтинг
+    const average = totalRatings > 0 
+      ? (ratings.reduce((a, b) => a + b, 0) / totalRatings).toFixed(1)
       : "0.0";
     
+    // Процент рекомендующих
     const recommendedCount = reviews.filter(r => r.rating >= 4).length;
     const recommendationPercentage = Math.round((recommendedCount / reviews.length) * 100);
     
-    return { average, recommendedCount, recommendationPercentage };
+    return {
+      statsData: stats,
+      totalRating: {
+        average,
+        recommendedCount,
+        recommendationPercentage,
+        total: reviews.length
+      }
+    };
   }, [reviews]);
 
   return (
@@ -764,20 +1165,21 @@ function ReviewsContent({ product }) {
             {/* ЛЕВАЯ КОЛОНКА: ОТЗЫВЫ */}
             <div className="text-info-column">
               {/* Статистика отзывов */}
-              <h2 className="reviews-main-title">{reviews.length} reviews</h2>
+              <h2 className="reviews-main-title">{totalRating.total} reviews</h2>
 
               <div className="reviews-summary-box">
                 <div className="rating-overview">
                   <span className="rating-number">{totalRating.average}</span>
                   <div className="rating-stars">
-                    <FaStar />
-                    <FaStar />
-                    <FaStar />
-                    <FaStar />
-                    <FaRegStar />
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className="star-icon">
+                        {i < Math.floor(parseFloat(totalRating.average)) ? 
+                          <FaStar /> : <FaRegStar />}
+                      </span>
+                    ))}
                   </div>
                   <p className="recommend-text">
-                    {totalRating.recommendedCount} out of {reviews.length} ({totalRating.recommendationPercentage}%) <br />
+                    {totalRating.recommendedCount} out of {totalRating.total} ({totalRating.recommendationPercentage}%) <br />
                     <span className="recommend-sub">Customers recommend this product</span>
                   </p>
                 </div>
@@ -831,12 +1233,19 @@ function ReviewsContent({ product }) {
                 {currentReviews.map((review) => (
                   <div 
                     key={review.id} 
-                    className="review-item"
+                    className={`review-item ${review.isReply ? 'is-reply' : ''}`}
                   >
                     <div className="review-header">
                       <div className="reviewer-info">
-                        <h4 className="reviewer-name">{review.name}</h4>
-                        <span className="review-date">{review.date}</span>
+                        <div className="reviewer-avatar-small">
+                          <span className="avatar-initials-small">
+                            {review.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="reviewer-name">{review.name}</h4>
+                          <span className="review-date">{review.date}</span>
+                        </div>
                       </div>
                       
                       {/* Показываем звезды только если rating > 0 */}
@@ -852,6 +1261,12 @@ function ReviewsContent({ product }) {
                     </div>
                     
                     <p className="review-text">{review.text}</p>
+                    
+                    {review.imageUrl && (
+                      <div className="review-image">
+                        <img src={review.imageUrl} alt="Review" />
+                      </div>
+                    )}
                     
                     <div className="review-actions-bottom">
                       <button className="reply-btn-small">
@@ -877,38 +1292,40 @@ function ReviewsContent({ product }) {
               </div>
 
               {/* ПАГИНАЦИЯ - ЦИФРЫ 1 2 3 */}
-              <div className="reviews-pagination">
-                <button 
-                  className="pagination-btn"
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                >
-                  <FaChevronLeft />
-                </button>
-                
-                {/* Цифры страниц */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
-                  <button
-                    key={pageNumber}
-                    className={`pagination-btn ${currentPage === pageNumber ? "active" : ""}`}
-                    onClick={() => handlePageChange(pageNumber)}
+              {totalPages > 1 && (
+                <div className="reviews-pagination">
+                  <button 
+                    className="pagination-btn"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
                   >
-                    {pageNumber}
+                    <FaChevronLeft />
                   </button>
-                ))}
-                
-                <button 
-                  className="pagination-btn"
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                >
-                  <FaChevronRight />
-                </button>
-                
-                <span className="pagination-info">
-                  Page {currentPage} of {totalPages}
-                </span>
-              </div>
+                  
+                  {/* Цифры страниц */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
+                    <button
+                      key={pageNumber}
+                      className={`pagination-btn ${currentPage === pageNumber ? "active" : ""}`}
+                      onClick={() => handlePageChange(pageNumber)}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+                  
+                  <button 
+                    className="pagination-btn"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    <FaChevronRight />
+                  </button>
+                  
+                  <span className="pagination-info">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* ПРАВАЯ КОЛОНКА: КАРТОЧКА ТОВАРА СО СЛАЙДЕРОМ */}
@@ -918,18 +1335,6 @@ function ReviewsContent({ product }) {
                   {product.hasDiscount && (
                     <div className="badge-exact">-{product.discount}%</div>
                   )}
-
-                  <div className="rating-exact">
-                    {[...Array(5)].map((_, i) => (
-                      <span
-                        key={i}
-                        className={`star-icon ${i < rating ? "filled" : "empty"}`}
-                        onClick={() => setRating(i + 1)}
-                      >
-                        {i < rating ? <FaStar /> : <FaRegStar />}
-                      </span>
-                    ))}
-                  </div>
 
                   <div className="img-container viewport">
                     {/* ЛЕВАЯ КНОПКА */}

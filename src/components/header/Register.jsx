@@ -34,6 +34,14 @@ export default function Register({ onClose, onLogin }) {
     localStorage.setItem("users", JSON.stringify(users));
   };
 
+  // ✅ Функция для отправки события об изменении пользователя
+  const dispatchUserChangeEvent = (userData) => {
+    const event = new CustomEvent("userStateChanged", { 
+      detail: userData 
+    });
+    window.dispatchEvent(event);
+  };
+
   const validate = () => {
     const e = {};
     setAuthError("");
@@ -80,8 +88,8 @@ export default function Register({ onClose, onLogin }) {
       id: Date.now(),
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      password: password, // В реальном приложении нужно хешировать пароль!
-      role: "user", // Можно добавлять разные роли: "admin", "user", "moderator"
+      password: password,
+      role: "user",
       createdAt: new Date().toISOString(),
       lastLogin: null
     };
@@ -93,6 +101,9 @@ export default function Register({ onClose, onLogin }) {
     // Устанавливаем текущего пользователя
     const { password: _, ...userWithoutPassword } = newUser;
     localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
+    
+    // ✅ Отправляем событие об изменении пользователя
+    dispatchUserChangeEvent(userWithoutPassword);
     
     setSuccess(true);
   };
@@ -121,6 +132,9 @@ export default function Register({ onClose, onLogin }) {
     const { password: _, ...userWithoutPassword } = user;
     localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
     
+    // ✅ Отправляем событие об изменении пользователя
+    dispatchUserChangeEvent(userWithoutPassword);
+    
     setSuccess(true);
   };
 
@@ -147,7 +161,7 @@ export default function Register({ onClose, onLogin }) {
     }, VIDEO_END_DELAY);
   };
 
-  // Функция для сброса пароля (дополнительная функция)
+  // Функция для сброса пароля
   const handleForgotPassword = () => {
     const users = getUsers();
     const user = users.find(user => user.email === email.toLowerCase().trim());
@@ -157,9 +171,26 @@ export default function Register({ onClose, onLogin }) {
       return;
     }
     
-    // В реальном приложении здесь должна быть отправка email
     alert(`Password reset link would be sent to ${email}`);
     setAuthError("Password reset link sent to your email (demo mode)");
+  };
+
+  // ✅ Сброс полей при смене режима
+  useEffect(() => {
+    if (!success && !showCheck) {
+      setName("");
+      setEmail("");
+      setPassword("");
+      setErrors({});
+      setAuthError("");
+    }
+  }, [mode, success, showCheck]);
+
+  // ✅ Обработка нажатия Enter
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
   };
 
   return (
@@ -176,6 +207,7 @@ export default function Register({ onClose, onLogin }) {
               src={nice}
               autoPlay
               playsInline
+              muted // ✅ Добавляем muted для автовоспроизведения
               onLoadedMetadata={e => (e.currentTarget.currentTime = VIDEO_START_OFFSET)}
               onEnded={handleVideoEnd}
               className="success-video"
@@ -208,7 +240,9 @@ export default function Register({ onClose, onLogin }) {
                   placeholder="Full name"
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className={errors.name ? "input-error" : ""}
+                  autoFocus
                 />
                 {errors.name && <div className="error-text">{errors.name}</div>}
               </>
@@ -218,7 +252,9 @@ export default function Register({ onClose, onLogin }) {
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
               className={errors.email ? "input-error" : ""}
+              autoFocus={mode === "signin"}
             />
             {errors.email && <div className="error-text">{errors.email}</div>}
 
@@ -227,6 +263,7 @@ export default function Register({ onClose, onLogin }) {
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              onKeyPress={handleKeyPress}
               className={errors.password ? "input-error" : ""}
             />
             {errors.password && <div className="error-text">{errors.password}</div>}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 import HeaderTop from "../header/HeaderTop";
 import HeaderMain from "../header/HeaderMain";
@@ -12,110 +12,66 @@ import Favorite from "../favorite/Favorite";
 import Register from "../header/Register";
 import Profile from "../header/Profile";
 import Enjoy from "../enjoy/Enjoy";
+import Footer from "../footer/Footer"; // ✅ Добавляем импорт футера
 
 function Layout() {
   const [activeMenu, setActiveMenu] = useState(null);
-  
-  // Восстанавливаем состояние корзины из localStorage
-  const [cartOpen, setCartOpen] = useState(() => {
-    const saved = localStorage.getItem('cartOpenState');
-    return saved === 'true' ? true : false;
-  });
-  
+  const [cartOpen, setCartOpen] = useState(() => localStorage.getItem("cartOpenState") === "true");
   const [favOpen, setFavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+  // ✅ Используем тот же ключ, что и в Register
+  const [user, setUser] = useState(() => {
+    const userData = localStorage.getItem("currentUser");
+    return userData ? JSON.parse(userData) : null;
+  });
   const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [showEnjoy, setShowEnjoy] = useState(false);
-  
-  // Состояния для счетчиков
+
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [favoriteItemsCount, setFavoriteItemsCount] = useState(0);
 
   const menuRef = useRef(null);
-  const navigate = useNavigate();
 
-  // Сохраняем состояние корзины в localStorage при изменении
+  // ✅ Слушаем изменения в localStorage для пользователя
   useEffect(() => {
-    localStorage.setItem('cartOpenState', cartOpen.toString());
+    const handleStorageChange = () => {
+      const userData = localStorage.getItem("currentUser");
+      if (userData) {
+        setUser(JSON.parse(userData));
+      } else {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("cartOpenState", cartOpen.toString());
   }, [cartOpen]);
 
-  // Обновляем счетчик корзины
   useEffect(() => {
     const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-      setCartItemsCount(totalItems);
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      setCartItemsCount(cart.reduce((sum, item) => sum + item.quantity, 0));
     };
-
     updateCartCount();
-    window.addEventListener('cartUpdated', updateCartCount);
-    
-    return () => window.removeEventListener('cartUpdated', updateCartCount);
+    window.addEventListener("cartUpdated", updateCartCount);
+    return () => window.removeEventListener("cartUpdated", updateCartCount);
   }, []);
 
-  // Обновляем счетчик избранного
   useEffect(() => {
     const updateFavoriteCount = () => {
-      const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-      setFavoriteItemsCount(favorites.length);
+      const fav = JSON.parse(localStorage.getItem("favorites")) || [];
+      setFavoriteItemsCount(fav.length);
     };
-
     updateFavoriteCount();
-    window.addEventListener('favoritesUpdated', updateFavoriteCount);
-    
-    return () => window.removeEventListener('favoritesUpdated', updateFavoriteCount);
+    window.addEventListener("favoritesUpdated", updateFavoriteCount);
+    return () => window.removeEventListener("favoritesUpdated", updateFavoriteCount);
   }, []);
 
-  // Глобальный обработчик для открытия корзины из других компонентов
-  useEffect(() => {
-    const handleGlobalOpenCart = () => {
-      setCartOpen(true);
-    };
-
-    window.addEventListener('openCart', handleGlobalOpenCart);
-    
-    return () => {
-      window.removeEventListener('openCart', handleGlobalOpenCart);
-    };
-  }, []);
-
-  const handleMenuToggle = (menu) => {
-    setActiveMenu(prev => (prev === menu ? null : menu));
-  };
-
-  const handleAccountClick = () => {
-    if (user) {
-      setProfileOpen(true);
-    } else {
-      setAuthOpen(true);
-    }
-  };
-
-  // Функция для навигации к заказам
-  const handleViewOrders = () => {
-    navigate('/orders');
-  };
-
-  // Обработчик клика по Delivery & returns
-  const handleDeliveryClick = () => {
-    setShowEnjoy(true);
-    // Прокручиваем страницу к компоненту Enjoy
-    setTimeout(() => {
-      document.querySelector('.enjoy-wrapper')?.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }, 100);
-  };
-
-  // Функция для открытия корзины (можно передавать в дочерние компоненты)
-  const handleOpenCart = () => {
-    setCartOpen(true);
-  };
-
-  // Закрываем меню при клике вне его области
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -126,32 +82,44 @@ function Layout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (showEnjoy && typeof window !== "undefined") {
+      document.querySelector(".enjoy-wrapper")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showEnjoy]);
+
+  const handleDeliveryClick = () => setShowEnjoy(true);
+  const handleAccountClick = () => user ? setProfileOpen(true) : setAuthOpen(true);
+  const handleOpenCart = () => setCartOpen(true);
+
+  // ✅ Функция для обновления пользователя (будет вызвана из HeaderTop при логауте)
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    setUser(null);
+    setProfileOpen(false);
+  };
+
   return (
     <div className="layout-container">
+      {/* Хедер отображается на каждой странице */}
       <HeaderTop
         user={user}
         onLoginClick={() => setAuthOpen(true)}
         onProfileClick={() => setProfileOpen(true)}
-        onLogout={() => {
-          localStorage.removeItem("user");
-          setUser(null);
-          setProfileOpen(false);
-        }}
-        onViewOrders={handleViewOrders}
+        onLogout={handleLogout}
         onDeliveryClick={handleDeliveryClick}
       />
 
       <div ref={menuRef} style={{ position: "relative" }}>
         <HeaderMain
           activeMenu={activeMenu}
-          onMenuToggle={handleMenuToggle}
+          onMenuToggle={(m) => setActiveMenu(p => p === m ? null : m)}
           onCartClick={() => setCartOpen(true)}
           onFavoriteClick={() => setFavOpen(true)}
           onSearchClick={() => setSearchOpen(true)}
           onAccountClick={handleAccountClick}
           cartCount={cartItemsCount}
           favoriteCount={favoriteItemsCount}
-          onViewOrders={handleViewOrders}
         />
 
         {activeMenu && (
@@ -164,53 +132,36 @@ function Layout() {
 
       <HeaderSale />
 
-      {/* Компонент Enjoy */}
-      {showEnjoy && (
-        <div className="enjoy-section">
-          <Enjoy onClose={() => setShowEnjoy(false)} />
-        </div>
-      )}
+      {showEnjoy && <Enjoy onClose={() => setShowEnjoy(false)} />}
 
-      {/* Основной контент */}
+      {/* Основной контент страниц */}
       <main className="main-content">
         <Outlet context={{ openCart: handleOpenCart }} />
       </main>
 
-      {/* Избранное */}
-      <Favorite
-        open={favOpen}
-        onClose={() => setFavOpen(false)}
-      />
+      {/* Футер отображается на каждой странице */}
+      <Footer />
 
-      {/* Корзина - всегда рендерится, состояние контролируется через проп open */}
-      <Korzina
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-      />
+      {/* Модальные окна */}
+      <Favorite open={favOpen} onClose={() => setFavOpen(false)} />
+      <Korzina open={cartOpen} onClose={() => setCartOpen(false)} />
 
-      {/* Регистрация/Авторизация */}
       {authOpen && (
         <Register
           onClose={() => setAuthOpen(false)}
-          onLogin={(u) => {
-            setUser(u);
+          onLogin={(userData) => {
+            setUser(userData);
             setAuthOpen(false);
             setProfileOpen(true);
           }}
         />
       )}
 
-      {/* Профиль */}
-      {profileOpen && user && (
+      {profileOpen && (
         <Profile
           user={user}
           onClose={() => setProfileOpen(false)}
-          onLogout={() => {
-            localStorage.removeItem("user");
-            setUser(null);
-            setProfileOpen(false);
-          }}
-          onViewOrders={handleViewOrders}
+          onLogout={handleLogout}
         />
       )}
     </div>

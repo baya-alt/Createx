@@ -4,19 +4,21 @@ import ProductPageContent from "./ProductPageContent";
 
 import "./ProductTabs.css";
 import Reviews from "./Rewiews";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 function ProductTabs({ activeTab, setActiveTab, product }) {
+  const { t } = useLanguage();
   return (
     <>
       <div className="product-tabs">
         <button className={activeTab === "info" ? "active" : ""} onClick={() => setActiveTab("info")}>
-          General info
+          {t("productTabs.generalInfo")}
         </button>
         <button className={activeTab === "details" ? "active" : ""} onClick={() => setActiveTab("details")}>
-          Product details
+          {t("productTabs.productDetails")}
         </button>
         <button className={activeTab === "reviews" ? "active" : ""} onClick={() => setActiveTab("reviews")}>
-          Reviews <span>12</span>
+          {t("productTabs.reviews")} <span>12</span>
         </button>
       </div>
 

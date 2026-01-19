@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
+import { loadReviews, saveReviews } from "../../utils/reviewsStorage";
+import { fetchReviews, createReview, updateReview } from "../../utils/reviewsApi";
 import { 
   FaStar, 
   FaRegStar, 
@@ -8,513 +10,757 @@ import {
   FaThumbsDown,
   FaReply,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaTimes,
+  FaCheck,
+  FaUser,
+  FaPaperPlane,
+  FaImage,
+  FaHeart,
+  FaRegHeart
 } from "react-icons/fa";
-import LeaveReview from "./KidsLeaveReviews";
 // import "./rewiew.css";
 
-/* ================= КОМПОНЕНТЫ УВЕДОМЛЕНИЙ ================= */
+/* ================= КОМПОНЕНТ МОДАЛЬНОГО ОКНА ДЛЯ ОТЗЫВОВ ================= */
 
-// 1. Уведомление "Added to Cart"
-function CartAddedNotification({ isOpen, onClose, product, size, color, quantity, onViewCart }) {
-    const [isVisible, setIsVisible] = useState(isOpen);
-    const [isHiding, setIsHiding] = useState(false);
-    const [cartItemsCount, setCartItemsCount] = useState(0);
-    const [cartTotal, setCartTotal] = useState(0);
+function KidsLeaveReview({ onClose, onReviewSubmit }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    rating: 0,
+    reviewText: "",
+    childAge: "",
+    imagePreview: null,
+    imageFile: null
+  });
+  
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        setCartItemsCount(cart.reduce((sum, item) => sum + item.quantity, 0));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleRatingClick = (value) => {
+    setFormData(prev => ({ ...prev, rating: value }));
+    if (formErrors.rating) {
+      setFormErrors(prev => ({ ...prev, rating: "" }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setFormErrors(prev => ({ ...prev, image: "Image size should be less than 5MB" }));
+        return;
+      }
+
+      if (!file.type.match('image.*')) {
+        setFormErrors(prev => ({ ...prev, image: "Please select an image file" }));
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, imageFile: file }));
+      setFormErrors(prev => ({ ...prev, image: "" }));
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imagePreview: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, imagePreview: null, imageFile: null }));
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) errors.name = "Name is required";
+    if (!formData.email.trim()) errors.email = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) errors.email = "Please enter a valid email";
+    if (formData.rating === 0) errors.rating = "Please select a rating";
+    if (!formData.reviewText.trim()) errors.reviewText = "Review text is required";
+    if (formData.reviewText.length > 2000) errors.reviewText = "Review text is too long (max 2000 characters)";
+    if (!formData.childAge.trim()) errors.childAge = "Child's age is required";
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      let imageUrl = formData.imagePreview;
+
+      const newReview = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        rating: formData.rating,
+        text: formData.reviewText.trim(),
+        childAge: formData.childAge.trim(),
+        date: "Just now",
+        imageUrl,
+        isParentReview: true
+      };
+
+      onReviewSubmit(newReview);
+      
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      setFormErrors(prev => ({ 
+        ...prev, 
+        submit: "Failed to submit review. Please try again." 
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      rating: 0,
+      reviewText: "",
+      childAge: "",
+      imagePreview: null,
+      imageFile: null
+    });
+    setFormErrors({});
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">Leave a Parent Review</h2>
+          <button className="modal-close-btn" onClick={handleClose}>
+            <FaTimes />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="review-form">
+          <div className="form-row">
+            <div className="form-group" data-error={!!formErrors.name}>
+              <label htmlFor="name" className="form-label">
+                Your Name *
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={`form-input ${formErrors.name ? 'error' : ''}`}
+              />
+              {formErrors.name && <span className="error-message">{formErrors.name}</span>}
+            </div>
+
+            <div className="form-group" data-error={!!formErrors.email}>
+              <label htmlFor="email" className="form-label">
+                Your Email *
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className={`form-input ${formErrors.email ? 'error' : ''}`}
+              />
+              {formErrors.email && <span className="error-message">{formErrors.email}</span>}
+            </div>
+          </div>
+
+          <div className="form-group" data-error={!!formErrors.childAge}>
+            <label htmlFor="childAge" className="form-label">
+              Child's Age *
+            </label>
+            <input
+              id="childAge"
+              name="childAge"
+              type="text"
+              placeholder="e.g., 5 years old"
+              value={formData.childAge}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              className={`form-input ${formErrors.childAge ? 'error' : ''}`}
+            />
+            {formErrors.childAge && <span className="error-message">{formErrors.childAge}</span>}
+          </div>
+
+          <div className="form-group" data-error={!!formErrors.rating}>
+            <label className="form-label">Your Rating *</label>
+            <div className="rating-stars-modal">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`star-btn ${star <= formData.rating ? 'active' : ''}`}
+                  onClick={() => handleRatingClick(star)}
+                  disabled={isSubmitting}
+                >
+                  {star <= formData.rating ? (
+                    <FaStar className="star-filled" />
+                  ) : (
+                    <FaRegStar className="star-empty" />
+                  )}
+                </button>
+              ))}
+              <span className={`rating-text-modal ${formData.rating === 0 ? "is-empty" : ""}`}>
+                {formData.rating > 0 ? `${formData.rating} star${formData.rating > 1 ? 's' : ''}` : "Select your rating"}
+              </span>
+            </div>
+            {formErrors.rating && <span className="error-message">{formErrors.rating}</span>}
+          </div>
+
+          <div className="form-group" data-error={!!formErrors.reviewText}>
+            <label htmlFor="reviewText" className="form-label">
+              Your Review *
+            </label>
+            <textarea
+              id="reviewText"
+              name="reviewText"
+              placeholder="Share your experience with this kids product. How does your child like it? Is it comfortable and durable?"
+              value={formData.reviewText}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              rows="6"
+              className={`form-textarea ${formErrors.reviewText ? 'error' : ''}`}
+              maxLength="2000"
+            />
+            {formErrors.reviewText && <span className="error-message">{formErrors.reviewText}</span>}
+            <div className="character-count">
+              {formData.reviewText.length}/2000 characters
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Upload Photo (Optional)</label>
+            {formData.imagePreview ? (
+              <div className="image-preview">
+                <div className="preview-image-wrapper">
+                  <img src={formData.imagePreview} alt="Preview" />
+                  <button 
+                    type="button" 
+                    className="remove-preview-btn"
+                    onClick={removeImage}
+                    disabled={isSubmitting}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                <span className="image-hint">Click the X to remove</span>
+              </div>
+            ) : (
+              <div className="image-upload">
+                <input
+                  type="file"
+                  id="imageUpload"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={isSubmitting}
+                  className="file-input-hidden"
+                />
+                <label htmlFor="imageUpload" className="upload-area">
+                  <FaImage className="upload-icon" />
+                  <div className="upload-text">
+                    <p>Click to upload photo</p>
+                    <p className="upload-hint">JPG, PNG or GIF • Max 5MB</p>
+                  </div>
+                </label>
+              </div>
+            )}
+            {formErrors.image && <span className="error-message">{formErrors.image}</span>}
+          </div>
+
+          {formErrors.submit && (
+            <div className="submit-error">
+              <span className="error-message">{formErrors.submit}</span>
+            </div>
+          )}
+
+          <div className="form-actions">
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="spinner"></span>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <FaPaperPlane className="submit-icon" />
+                  Submit Review
+                </>
+              )}
+            </button>
+            <button 
+              type="button" 
+              className="cancel-btn"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+          </div>
+
+          <div className="form-note">
+            <p className="note-text">
+              * Required fields. Your email will not be published. Parent reviews help other parents make informed decisions.
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ================= КОМПОНЕНТЫ УВЕДОМЛЕНИЙ ДЛЯ KIDS ================= */
+
+// 1. Уведомление об успешном добавлении отзыва
+function KidsReviewAddedNotification({ isOpen, onClose, review }) {
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const [isHiding, setIsHiding] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      setIsHiding(false);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setIsHiding(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (onClose) onClose();
+    }, 300);
+  };
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="notification-container">
+      <div className={`notification review-added ${isHiding ? 'hiding' : ''}`}>
+        <div className="notification-progress">
+          <div className="notification-progress-bar"></div>
+        </div>
         
-        const total = cart.reduce((sum, item) => {
-            const price = item.hasDiscount && item.discount 
-                ? item.price * (1 - item.discount / 100)
-                : item.price;
-            return sum + (price * item.quantity);
-        }, 0);
-        setCartTotal(total.toFixed(2));
-
-        if (isOpen) {
-            setIsVisible(true);
-            setIsHiding(false);
-        }
-    }, [isOpen]);
-
-    const handleClose = useCallback(() => {
-        setIsHiding(true);
-        setTimeout(() => {
-            setIsVisible(false);
-            if (onClose) onClose();
-        }, 300);
-    }, [onClose]);
-
-    const handleViewCart = useCallback(() => {
-        if (onViewCart) onViewCart();
-        handleClose();
-    }, [onViewCart, handleClose]);
-
-    const getColorHex = useCallback((colorName) => {
-        const colors = {
-            black: '#000000',
-            white: '#ffffff',
-            red: '#ef4444',
-            blue: '#3b82f6',
-            green: '#10b981',
-            yellow: '#f59e0b',
-            purple: '#8b5cf6',
-            pink: '#ec4899',
-            gray: '#6b7280',
-            brown: '#92400e',
-            navy: '#1e3a8a',
-        };
-        return colors[colorName?.toLowerCase()] || '#6b7280';
-    }, []);
-
-    if (!isVisible) return null;
-
-    return (
-        <div className="notification-container">
-            <div className={`notification cart-added ${isHiding ? 'hiding' : ''}`}>
-                <div className="notification-progress">
-                    <div className="notification-progress-bar"></div>
-                </div>
-                
-                <div className="notification-header">
-                    <div className="notification-icon-circle">
-                        <span className="notification-icon">✓</span>
-                    </div>
-                    <div className="notification-titles">
-                        <h3 className="notification-title">Added to Cart</h3>
-                        <p className="notification-subtitle">Item successfully added to your shopping cart</p>
-                    </div>
-                    <button className="notification-close-btn" onClick={handleClose}>
-                        ×
-                    </button>
-                </div>
-                
-                <div className="notification-body">
-                    <div className="cart-product-preview">
-                        <div className="cart-product-image">
-                            <img 
-                                src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
-                                alt={product.name}
-                                onError={(e) => {
-                                    e.target.src = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop";
-                                }}
-                            />
-                        </div>
-                        <div className="cart-product-info">
-                            <h4 className="cart-product-name">{product.name}</h4>
-                            <div className="cart-product-details">
-                                {color && (
-                                    <span className="cart-product-color">
-                                        <span 
-                                            className="cart-color-dot" 
-                                            style={{ backgroundColor: getColorHex(color) }}
-                                        />
-                                        {color}
-                                    </span>
-                                )}
-                                {size && (
-                                    <span className="cart-product-size">
-                                        <span>Size:</span> {size}
-                                    </span>
-                                )}
-                                {quantity > 1 && (
-                                    <span className="cart-product-qty">
-                                        <span>Qty:</span> {quantity}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="cart-product-price">
-                                ${(product.price * quantity).toFixed(2)}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {cartItemsCount > 1 && (
-                        <div className="cart-summary">
-                            <div className="cart-count">
-                                <span className="cart-count-number">{cartItemsCount}</span>
-                                <span>items in cart</span>
-                            </div>
-                            <div className="cart-total-price">${cartTotal}</div>
-                        </div>
-                    )}
-                    
-                    <div className="notification-actions">
-                        <button className="notification-btn continue" onClick={handleClose}>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M2 8H14M14 8L9 3M14 8L9 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Continue Shopping
-                        </button>
-                        <button className="notification-btn view-cart" onClick={handleViewCart}>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M2 2H3.33333L5.2 9.592C5.30213 10.0251 5.59046 10.396 5.996 10.618C6.40153 10.84 6.8896 10.8927 7.33333 10.764H12.6667C13.1104 10.8927 13.5985 10.84 14.004 10.618C14.4095 10.396 14.6979 10.0251 14.8 9.592L16 4.66667H4.66667M6.66667 14C6.66667 14.3682 6.36819 14.6667 6 14.6667C5.63181 14.6667 5.33333 14.3682 5.33333 14C5.33333 13.6318 5.63181 13.3333 6 13.3333C6.36819 13.3333 6.66667 13.6318 6.66667 14ZM13.3333 14C13.3333 14.3682 13.0349 14.6667 12.6667 14.6667C12.2985 14.6667 12 14.3682 12 14C12 13.6318 12.2985 13.3333 12.6667 13.3333C13.0349 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            View Cart
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div className="notification-header">
+          <div className="notification-icon-circle success">
+            <span className="notification-icon">✓</span>
+          </div>
+          <div className="notification-titles">
+            <h3 className="notification-title">Review Submitted</h3>
+            <p className="notification-subtitle">Thank you for sharing your parent experience!</p>
+          </div>
+          <button className="notification-close-btn" onClick={handleClose}>
+            ×
+          </button>
         </div>
-    );
+        
+        <div className="notification-body">
+          <div className="review-preview">
+            <div className="reviewer-avatar">
+              <span className="avatar-initials">
+                {review.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="review-content">
+              <div className="review-rating">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className="review-star">
+                    {i < review.rating ? '★' : '☆'}
+                  </span>
+                ))}
+              </div>
+              <p className="review-text-preview">{review.text.substring(0, 100)}...</p>
+              <div className="review-meta">
+                <span className="review-author">{review.name}</span>
+                <span className="review-child-age">Child: {review.childAge}</span>
+                <span className="review-date">Just now</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="notification-actions">
+            <button className="notification-btn continue" onClick={handleClose}>
+              Continue Browsing
+            </button>
+            <button className="notification-btn view-all" onClick={handleClose}>
+              View All Reviews
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// 2. Уведомление о выборе размера
-function SizeWarningNotification({ isOpen, onClose, onSizeSelect }) {
-    const [isVisible, setIsVisible] = useState(isOpen);
-    const [isHiding, setIsHiding] = useState(false);
-    const [selectedSize, setSelectedSize] = useState(null);
+// 2. Уведомление о добавлении в корзину (kids version)
+function KidsCartAddedNotification({ isOpen, onClose, product, size, color, quantity = 1 }) {
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const [isHiding, setIsHiding] = useState(false);
 
-    const availableSizes = ['XS', 'S', 'M', 'L', 'XL'];
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      setIsHiding(false);
+    }
+  }, [isOpen]);
 
-    useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-            setIsHiding(false);
-            setSelectedSize(null);
-        }
-    }, [isOpen]);
+  const handleClose = () => {
+    setIsHiding(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (onClose) onClose();
+    }, 300);
+  };
 
-    const handleClose = useCallback(() => {
-        setIsHiding(true);
-        setTimeout(() => {
-            setIsVisible(false);
-            if (onClose) onClose();
-        }, 400);
-    }, [onClose]);
+  if (!isVisible) return null;
 
-    const handleSizeSelect = useCallback((size) => {
-        setSelectedSize(size);
-    }, []);
-
-    const handleConfirm = useCallback(() => {
-        if (selectedSize && onSizeSelect) {
-            onSizeSelect(selectedSize);
-        }
-        handleClose();
-    }, [selectedSize, onSizeSelect, handleClose]);
-
-    if (!isVisible) return null;
-
-    return (
-        <div className="notification-container">
-            <div className={`notification size-warning ${isHiding ? 'hiding' : ''}`}>
-                <div className="notification-progress">
-                    <div className="notification-progress-bar"></div>
-                </div>
-                
-                <div className="notification-header">
-                    <button className="notification-close-btn" onClick={handleClose}>
-                        ×
-                    </button>
-                    
-                    <div className="notification-icon-circle">
-                        <span className="notification-icon">⚠️</span>
-                    </div>
-                    
-                    <h3 className="notification-title">Select a Size</h3>
-                    <p className="notification-subtitle">
-                        Please choose your size before adding to cart
-                    </p>
-                </div>
-                
-                <div className="notification-body size-selector-body">
-                    <p style={{ marginBottom: '20px', color: '#64748b' }}>
-                        Available sizes for this product:
-                    </p>
-                    
-                    <div className="size-options">
-                        {availableSizes.map((size) => (
-                            <button
-                                key={size}
-                                className={`size-option ${selectedSize === size ? 'selected' : ''}`}
-                                onClick={() => handleSizeSelect(size)}
-                            >
-                                {size}
-                            </button>
-                        ))}
-                    </div>
-                    
-                    <div className="notification-actions">
-                        <button className="notification-btn cancel" onClick={handleClose}>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Cancel
-                        </button>
-                        <button 
-                            className="notification-btn primary" 
-                            onClick={handleConfirm}
-                            disabled={!selectedSize}
-                            style={{ opacity: selectedSize ? 1 : 0.6 }}
-                        >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M13.3333 4L5.99996 11.3333L2.66663 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Confirm Size
-                        </button>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="notification-container">
+      <div className={`notification cart-added ${isHiding ? 'hiding' : ''}`}>
+        <div className="notification-progress">
+          <div className="notification-progress-bar"></div>
         </div>
-    );
+        
+        <div className="notification-header">
+          <div className="notification-icon-circle success">
+            <span className="notification-icon">✓</span>
+          </div>
+          <div className="notification-titles">
+            <h3 className="notification-title">Added to Cart</h3>
+            <p className="notification-subtitle">Perfect choice for your child!</p>
+          </div>
+          <button className="notification-close-btn" onClick={handleClose}>
+            ×
+          </button>
+        </div>
+        
+        <div className="notification-body">
+          <div className="cart-product-preview">
+            <div className="cart-product-image">
+              <img 
+                src={product.avatar || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
+                alt={product.name}
+              />
+            </div>
+            <div className="cart-product-info">
+              <h4 className="cart-product-name">{product.name}</h4>
+              <div className="cart-product-details">
+                {color && (
+                  <span className="cart-product-color">
+                    <span 
+                      className="cart-color-dot" 
+                      style={{ 
+                        backgroundColor: color === 'black' ? '#000' : 
+                                     color === 'white' ? '#fff' : 
+                                     color === 'blue' ? '#3b82f6' : 
+                                     color === 'green' ? '#10b981' :
+                                     color === 'red' ? '#ef4444' : '#000' 
+                      }}
+                    />
+                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                  </span>
+                )}
+                {size && (
+                  <span className="cart-product-size">
+                    <span>Size:</span> {size}
+                  </span>
+                )}
+                {quantity > 1 && (
+                  <span className="cart-product-qty">
+                    <span>Qty:</span> {quantity}
+                  </span>
+                )}
+              </div>
+              <div className="cart-product-price">
+                ${product.price.toFixed(2)} × {quantity} = ${(product.price * quantity).toFixed(2)}
+              </div>
+            </div>
+          </div>
+          
+          <div className="notification-actions">
+            <button className="notification-btn continue" onClick={handleClose}>
+              Continue Shopping
+            </button>
+            <button className="notification-btn view-cart" onClick={handleClose}>
+              View Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// 3. Уведомление об удалении из избранного
-function FavoriteRemovedNotification({ isOpen, onClose, onUndo, product }) {
-    const [isVisible, setIsVisible] = useState(isOpen);
-    const [isHiding, setIsHiding] = useState(false);
+// 3. Уведомление о добавлении в избранное (kids version)
+function KidsFavoriteAddedNotification({ isOpen, onClose, product }) {
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const [isHiding, setIsHiding] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-            setIsHiding(false);
-        }
-    }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      setIsHiding(false);
+    }
+  }, [isOpen]);
 
-    const handleClose = useCallback(() => {
-        setIsHiding(true);
-        setTimeout(() => {
-            setIsVisible(false);
-            if (onClose) onClose();
-        }, 400);
-    }, [onClose]);
+  const handleClose = () => {
+    setIsHiding(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (onClose) onClose();
+    }, 300);
+  };
 
-    const handleUndo = useCallback(() => {
-        if (onUndo) onUndo();
-        handleClose();
-    }, [onUndo, handleClose]);
+  if (!isVisible) return null;
 
-    if (!isVisible) return null;
-
-    return (
-        <div className="notification-container">
-            <div className={`notification favorite-removed ${isHiding ? 'hiding' : ''}`}>
-                <div className="notification-progress">
-                    <div className="notification-progress-bar"></div>
-                </div>
-                
-                <div className="notification-header">
-                    <button className="notification-close-btn" onClick={handleClose}>
-                        ×
-                    </button>
-                    
-                    <div className="notification-icon-circle">
-                        <span className="notification-icon">💔</span>
-                    </div>
-                    
-                    <h3 className="notification-title">Removed from Favorites</h3>
-                    <p className="notification-subtitle">
-                        Item has been removed from your wishlist
-                    </p>
-                </div>
-                
-                <div className="notification-body favorite-removed-body">
-                    {product && (
-                        <div className="favorite-product-info">
-                            <div className="favorite-product-image">
-                                <img 
-                                    src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
-                                    alt={product.name}
-                                    onError={(e) => {
-                                        e.target.src = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop";
-                                    }}
-                                />
-                            </div>
-                            <div className="favorite-product-details">
-                                <h4 className="favorite-product-name">{product.name}</h4>
-                                <p className="favorite-product-price">${product.price?.toFixed(2)}</p>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <div className="undo-action">
-                        <button className="undo-btn" onClick={handleUndo}>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M1.33337 8.00008C1.33337 11.6761 4.32404 14.6667 8.00004 14.6667C11.676 14.6667 14.6667 11.6761 14.6667 8.00008C14.6667 4.32408 11.676 1.33341 8.00004 1.33341C5.06404 1.33341 2.57871 3.08941 1.69204 5.66675M1.33337 3.33341V5.66675H3.66671" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Undo
-                        </button>
-                    </div>
-                    
-                    <div className="notification-actions" style={{ marginTop: '24px' }}>
-                        <button className="notification-btn cancel" onClick={handleClose}>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M8 14.6667C11.6819 14.6667 14.6667 11.6819 14.6667 8C14.6667 4.3181 11.6819 1.33333 8 1.33333C4.3181 1.33333 1.33333 4.3181 1.33333 8C1.33333 11.6819 4.3181 14.6667 8 14.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M10 6L6 10M6 6L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Close
-                        </button>
-                        <button className="notification-btn primary" onClick={handleClose}>
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M2 2H3.33333L5.2 9.592C5.30213 10.0251 5.59046 10.396 5.996 10.618C6.40153 10.84 6.8896 10.8927 7.33333 10.764H12.6667C13.1104 10.8927 13.5985 10.84 14.004 10.618C14.4095 10.396 14.6979 10.0251 14.8 9.592L16 4.66667H4.66667M6.66667 14C6.66667 14.3682 6.36819 14.6667 6 14.6667C5.63181 14.6667 5.33333 14.3682 5.33333 14C5.33333 13.6318 5.63181 13.3333 6 13.3333C6.36819 13.3333 6.66667 13.6318 6.66667 14ZM13.3333 14C13.3333 14.3682 13.0349 14.6667 12.6667 14.6667C12.2985 14.6667 12 14.3682 12 14C12 13.6318 12.2985 13.3333 12.6667 13.3333C13.0349 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            View Similar Items
-                        </button>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="notification-container">
+      <div className={`notification favorite-added ${isHiding ? 'hiding' : ''}`}>
+        <div className="notification-progress">
+          <div className="notification-progress-bar"></div>
         </div>
-    );
+        
+        <div className="notification-header">
+          <div className="notification-icon-circle">
+            <span className="notification-icon">❤️</span>
+          </div>
+          <div className="notification-titles">
+            <h3 className="notification-title">Added to Kids' Wishlist</h3>
+            <p className="notification-subtitle">Great choice for your little one!</p>
+          </div>
+          <button className="notification-close-btn" onClick={handleClose}>
+            ×
+          </button>
+        </div>
+        
+        <div className="notification-body">
+          <div className="cart-product-preview">
+            <div className="cart-product-image">
+              <img 
+                src={product.avatar || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
+                alt={product.name}
+              />
+            </div>
+            <div className="cart-product-info">
+              <h4 className="cart-product-name">{product.name}</h4>
+              <p className="cart-product-price">${product.price.toFixed(2)}</p>
+            </div>
+          </div>
+          
+          <div className="notification-actions">
+            <button className="notification-btn continue" onClick={handleClose}>
+              Continue Shopping
+            </button>
+            <button className="notification-btn view-wishlist" onClick={handleClose}>
+              View Wishlist
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// 4. Уведомление о добавлении в избранное
-function FavoriteAddedNotification({ isOpen, onClose, product }) {
-    const [isVisible, setIsVisible] = useState(isOpen);
-    const [isHiding, setIsHiding] = useState(false);
+// 4. Уведомление о выборе размера для kids
+function KidsSizeWarningNotification({ isOpen, onClose, onSizeSelect }) {
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const [isHiding, setIsHiding] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-            setIsHiding(false);
-        }
-    }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      setIsHiding(false);
+      setSelectedSize(null);
+    }
+  }, [isOpen]);
 
-    const handleClose = useCallback(() => {
-        setIsHiding(true);
-        setTimeout(() => {
-            setIsVisible(false);
-            if (onClose) onClose();
-        }, 400);
-    }, [onClose]);
+  const handleClose = () => {
+    setIsHiding(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (onClose) onClose();
+    }, 300);
+  };
 
-    if (!isVisible) return null;
+  const handleConfirm = () => {
+    if (selectedSize && onSizeSelect) {
+      onSizeSelect(selectedSize);
+    }
+    handleClose();
+  };
 
-    return (
-        <div className="notification-container">
-            <div className={`notification favorite-added ${isHiding ? 'hiding' : ''}`}>
-                <div className="notification-progress">
-                    <div className="notification-progress-bar"></div>
-                </div>
-                
-                <div className="notification-header">
-                    <button className="notification-close-btn" onClick={handleClose}>
-                        ×
-                    </button>
-                    
-                    <div className="notification-icon-circle">
-                        <span className="notification-icon">❤️</span>
-                    </div>
-                    
-                    <h3 className="notification-title">Added to Favorites</h3>
-                    <p className="notification-subtitle">
-                        Item successfully added to your wishlist
-                    </p>
-                </div>
-                
-                <div className="notification-body">
-                    {product && (
-                        <div className="favorite-product-info">
-                            <div className="favorite-product-image">
-                                <img 
-                                    src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
-                                    alt={product.name}
-                                    onError={(e) => {
-                                        e.target.src = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop";
-                                    }}
-                                />
-                            </div>
-                            <div className="favorite-product-details">
-                                <h4 className="favorite-product-name">{product.name}</h4>
-                                <p className="favorite-product-price">${product.price?.toFixed(2)}</p>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <div className="notification-actions">
-                        <button className="notification-btn cancel" onClick={handleClose}>
-                            Continue Shopping
-                        </button>
-                        <button className="notification-btn primary" onClick={handleClose}>
-                            View Wishlist
-                        </button>
-                    </div>
-                </div>
-            </div>
+  if (!isVisible) return null;
+
+  return (
+    <div className="notification-container">
+      <div className={`notification size-warning ${isHiding ? 'hiding' : ''}`}>
+        <div className="notification-progress">
+          <div className="notification-progress-bar"></div>
         </div>
-    );
+        
+        <div className="notification-header">
+          <div className="notification-icon-circle warning">
+            <span className="notification-icon">👕</span>
+          </div>
+          <div className="notification-titles">
+            <h3 className="notification-title">Select Size for Kids</h3>
+            <p className="notification-subtitle">Please choose the right size for your child</p>
+          </div>
+          <button className="notification-close-btn" onClick={handleClose}>
+            ×
+          </button>
+        </div>
+        
+        <div className="notification-body">
+          <div className="size-options-grid">
+            {["XS (2-4Y)", "S (4-6Y)", "M (6-8Y)", "L (8-10Y)", "XL (10-12Y)"].map(size => (
+              <button
+                key={size}
+                className={`size-option-btn ${selectedSize === size ? 'selected' : ''}`}
+                onClick={() => setSelectedSize(size)}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+          
+          <div className="size-guide-note">
+            <p>💡 <strong>Size Tip:</strong> Consider choosing one size larger for growing kids.</p>
+          </div>
+          
+          <div className="notification-actions">
+            <button className="notification-btn cancel" onClick={handleClose}>
+              Cancel
+            </button>
+            <button 
+              className="notification-btn confirm" 
+              onClick={handleConfirm}
+              disabled={!selectedSize}
+            >
+              Confirm Size
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ================= ФУНКЦИИ ДЛЯ РАБОТЫ С ХРАНИЛИЩЕМ ================= */
 
-const addToCart = (product, size, color, quantity = 1, imageUrl) => {
-    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    const cartItemId = Date.now();
-    
-    const item = {
-        id: cartItemId,
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        basePrice: product.basePrice || product.price,
-        discount: product.discount || 0,
-        hasDiscount: product.hasDiscount || false,
-        size: size,
-        quantity: quantity,
-        color: color,
-        imageUrl: imageUrl || product.avatar || product.avatargreen || "",
-        variant: product.variant || product.kategory || "",
-        timestamp: Date.now()
-    };
-    
-    const existingItemIndex = existingCart.findIndex(cartItem => 
-        cartItem.productId === item.productId && 
-        cartItem.size === item.size && 
-        cartItem.color === item.color
-    );
-    
-    if (existingItemIndex !== -1) {
-        existingCart[existingItemIndex].quantity += quantity;
-    } else {
-        existingCart.push(item);
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    window.dispatchEvent(new Event('cartUpdated'));
-    
-    return item;
+const addToCartFromReviews = (product, size, color, quantity = 1) => {
+  const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+  
+  const cartItemId = Date.now();
+  
+  const item = {
+    id: cartItemId,
+    productId: product.id,
+    name: product.name,
+    price: product.price,
+    basePrice: product.basePrice || product.price,
+    discount: product.discount || 0,
+    hasDiscount: product.hasDiscount || false,
+    size: size,
+    quantity: quantity,
+    color: color,
+    imageUrl: product.avatar || "",
+    variant: product.kategory || "Kids",
+    timestamp: Date.now(),
+    category: "kids"
+  };
+  
+  const existingItemIndex = existingCart.findIndex(cartItem => 
+    cartItem.productId === item.productId && 
+    cartItem.size === item.size && 
+    cartItem.color === item.color &&
+    cartItem.category === "kids"
+  );
+  
+  if (existingItemIndex !== -1) {
+    existingCart[existingItemIndex].quantity += quantity;
+  } else {
+    existingCart.push(item);
+  }
+  
+  localStorage.setItem('cart', JSON.stringify(existingCart));
+  window.dispatchEvent(new Event('cartUpdated'));
+  
+  return item;
 };
 
-const addToFavorites = (product, color, imageUrl) => {
-    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    
-    const favoriteItem = {
-        id: Date.now(),
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: imageUrl,
-        color: color,
-        timestamp: Date.now()
-    };
+const toggleFavorite = (product, color) => {
+  const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+  
+  const favoriteItem = {
+    id: Date.now(),
+    productId: product.id,
+    name: product.name,
+    price: product.price,
+    imageUrl: product.avatar,
+    color: color,
+    timestamp: Date.now(),
+    category: "kids"
+  };
 
-    const isAlreadyFavorite = favorites.some(fav => 
-        fav.productId === favoriteItem.productId && 
-        fav.color === favoriteItem.color
-    );
-    
-    if (!isAlreadyFavorite) {
-        favorites.push(favoriteItem);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        window.dispatchEvent(new Event('favoritesUpdated'));
-        return { success: true, item: favoriteItem };
-    } else {
-        const updatedFavorites = favorites.filter(fav => 
-            !(fav.productId === favoriteItem.productId && fav.color === favoriteItem.color)
-        );
-        localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-        window.dispatchEvent(new Event('favoritesUpdated'));
-        return { success: false, item: favoriteItem };
-    }
+  const existingIndex = favorites.findIndex(fav => 
+    fav.productId === favoriteItem.productId && 
+    fav.color === favoriteItem.color &&
+    fav.category === "kids"
+  );
+  
+  let isAdded = false;
+  
+  if (existingIndex === -1) {
+    favorites.push(favoriteItem);
+    isAdded = true;
+  } else {
+    favorites.splice(existingIndex, 1);
+    isAdded = false;
+  }
+  
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+  window.dispatchEvent(new Event('favoritesUpdated'));
+  
+  return { isAdded, item: favoriteItem };
 };
 
-/* ================= КОМПОНЕНТ ОТЗЫВОВ ================= */
+/* ================= КОМПОНЕНТ ОТЗЫВОВ ДЛЯ KIDS ================= */
 
-// БОЛЬШЕ ОТЗЫВОВ - ТЕПЕРЬ 12 ШТУК
 const allReviewsData = [
   // Страница 1
   {
@@ -527,7 +773,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-07-15").getTime()
+    timestamp: new Date("2020-07-15").getTime(),
+    childAge: "5 years",
+    isParentReview: true
   },
   {
     id: 2,
@@ -540,7 +788,9 @@ const allReviewsData = [
     userLiked: false,
     userDisliked: false,
     isReply: true,
-    timestamp: new Date().getTime() - 86400000 // 1 день назад
+    timestamp: new Date().getTime() - 86400000,
+    childAge: "4 years",
+    isParentReview: true
   },
   {
     id: 3,
@@ -552,7 +802,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-07-07").getTime()
+    timestamp: new Date("2020-07-07").getTime(),
+    childAge: "7 years",
+    isParentReview: true
   },
   {
     id: 4,
@@ -564,7 +816,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-28").getTime()
+    timestamp: new Date("2020-06-28").getTime(),
+    childAge: "6 years",
+    isParentReview: true
   },
   // Страница 2
   {
@@ -577,7 +831,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-20").getTime()
+    timestamp: new Date("2020-06-20").getTime(),
+    childAge: "8 years",
+    isParentReview: true
   },
   {
     id: 6,
@@ -589,7 +845,9 @@ const allReviewsData = [
     dislikes: 2,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-18").getTime()
+    timestamp: new Date("2020-06-18").getTime(),
+    childAge: "5 years",
+    isParentReview: true
   },
   {
     id: 7,
@@ -601,7 +859,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-15").getTime()
+    timestamp: new Date("2020-06-15").getTime(),
+    childAge: "4 years",
+    isParentReview: true
   },
   {
     id: 8,
@@ -613,7 +873,9 @@ const allReviewsData = [
     dislikes: 1,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-10").getTime()
+    timestamp: new Date("2020-06-10").getTime(),
+    childAge: "6 years",
+    isParentReview: true
   },
   // Страница 3
   {
@@ -626,7 +888,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-05").getTime()
+    timestamp: new Date("2020-06-05").getTime(),
+    childAge: "7 years",
+    isParentReview: true
   },
   {
     id: 10,
@@ -638,7 +902,9 @@ const allReviewsData = [
     dislikes: 5,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-06-01").getTime()
+    timestamp: new Date("2020-06-01").getTime(),
+    childAge: "5 years",
+    isParentReview: true
   },
   {
     id: 11,
@@ -650,7 +916,9 @@ const allReviewsData = [
     dislikes: 0,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-05-25").getTime()
+    timestamp: new Date("2020-05-25").getTime(),
+    childAge: "8 years",
+    isParentReview: true
   },
   {
     id: 12,
@@ -662,13 +930,14 @@ const allReviewsData = [
     dislikes: 2,
     userLiked: false,
     userDisliked: false,
-    timestamp: new Date("2020-05-20").getTime()
+    timestamp: new Date("2020-05-20").getTime(),
+    childAge: "6 years",
+    isParentReview: true
   }
 ];
 
 const REVIEWS_PER_PAGE = 4;
 
-// Варианты сортировки
 const SORT_OPTIONS = {
   NEWEST: "newest",
   OLDEST: "oldest",
@@ -682,18 +951,12 @@ export default function KidsReviews() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch(`https://6947cef21ee66d04a44dfb36.mockapi.io/kids/${id}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
-        const basePrice = Number(data.price?.replace("$", "")) || 0;
+        const basePrice = Number(data.price?.replace("$", "") || data.price) || 0;
         const discount = data.sale ? Number(data.sale) : null;
         const price = discount
           ? +(basePrice * (1 - discount / 100)).toFixed(2)
@@ -707,113 +970,83 @@ export default function KidsReviews() {
           hasDiscount: !!data.sale,
         });
       })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-        setError(err.message);
-      })
+      .catch((err) => console.error("Fetch error:", err))
       .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <div className="loading-state">Loading...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
   if (!product) return <div className="error-state">Product not found</div>;
 
   return <KidsReviewsContent product={product} />;
 }
 
 function KidsReviewsContent({ product }) {
-  // Состояния для уведомлений
-  const [showCartAdded, setShowCartAdded] = useState(false);
-  const [showSizeWarning, setShowSizeWarning] = useState(false);
-  const [showFavoriteAdded, setShowFavoriteAdded] = useState(false);
-  const [showFavoriteRemoved, setShowFavoriteRemoved] = useState(false);
-  
-  // Данные для уведомлений
-  const [cartNotificationData, setCartNotificationData] = useState(null);
-  const [favoriteNotificationData, setFavoriteNotificationData] = useState(null);
-  const [lastFavoriteItem, setLastFavoriteItem] = useState(null);
-  
-  // Состояние для отзывов
-  const [reviews, setReviews] = useState(allReviewsData);
-  
-  // Состояние для сортировки
+  const [reviews, setReviews] = useState(() =>
+    loadReviews({ category: "kids", productId: product.id, fallback: allReviewsData })
+  );
+
+  useEffect(() => {
+    setReviews(loadReviews({ category: "kids", productId: product.id, fallback: allReviewsData }));
+  }, [product.id]);
+
+  useEffect(() => {
+    saveReviews({ category: "kids", productId: product.id, reviews });
+  }, [product.id, reviews]);
+
   const [sortBy, setSortBy] = useState(SORT_OPTIONS.NEWEST);
-  
-  // Состояние для пагинации
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Состояние для модального окна
   const [showReviewModal, setShowReviewModal] = useState(false);
   
-  // Количество товара
+  const [showReviewAdded, setShowReviewAdded] = useState(false);
+  const [showCartAdded, setShowCartAdded] = useState(false);
+  const [showFavoriteAdded, setShowFavoriteAdded] = useState(false);
+  const [showSizeWarning, setShowSizeWarning] = useState(false);
+  
+  const [notificationData, setNotificationData] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Формируем список доступных цветов для kids
   const colorMap = useMemo(() => {
-    const colors = [
+    return [
       { name: "black", label: "Black", src: product.avatar },
       { name: "white", label: "White", src: product.avatarwhite },
       { name: "blue", label: "Blue", src: product.avatarblue },
       { name: "green", label: "Green", src: product.avatargreen },
-    ].filter((c) => c.src && c.src.trim() !== "");
-    return colors;
+    ].filter((c) => c.src);
   }, [product]);
 
-  // Массив для слайдера: [Клон последнего, Оригиналы..., Клон первого]
   const slides = useMemo(() => {
-    if (!colorMap.length) return [product.avatar || ""];
+    if (!colorMap.length) return [];
     const images = colorMap.map((c) => c.src);
-    if (images.length === 1) return images;
     return [images[images.length - 1], ...images, images[0]];
-  }, [colorMap, product.avatar]);
+  }, [colorMap]);
 
-  const [index, setIndex] = useState(colorMap.length > 1 ? 1 : 0);
+  const [index, setIndex] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeSize, setActiveSize] = useState("S");
-  const [rating, setRating] = useState(4);
 
-  // Определяем активный цвет для подсветки точек
   const activeColorName = useMemo(() => {
-    if (colorMap.length === 0) return "";
-    if (colorMap.length === 1) return colorMap[0].name;
     if (index === 0) return colorMap[colorMap.length - 1]?.name;
     if (index === slides.length - 1) return colorMap[0]?.name;
     return colorMap[index - 1]?.name;
   }, [index, colorMap, slides.length]);
 
-  // Получаем активный цвет и изображение
-  const activeColor = useMemo(() => {
-    if (colorMap.length === 0) return null;
-    if (colorMap.length === 1) return colorMap[0];
-    if (index === 0) return colorMap[colorMap.length - 1];
-    if (index === slides.length - 1) return colorMap[0];
-    return colorMap[index - 1];
-  }, [index, colorMap, slides.length]);
-
-  // Сортируем отзывы в зависимости от выбранного варианта
   const sortedReviews = useMemo(() => {
     const reviewsCopy = [...reviews];
     
     switch (sortBy) {
       case SORT_OPTIONS.NEWEST:
         return reviewsCopy.sort((a, b) => b.timestamp - a.timestamp);
-        
       case SORT_OPTIONS.OLDEST:
         return reviewsCopy.sort((a, b) => a.timestamp - b.timestamp);
-        
       case SORT_OPTIONS.HIGHEST_RATING:
         return reviewsCopy.sort((a, b) => b.rating - a.rating);
-        
       case SORT_OPTIONS.LOWEST_RATING:
         return reviewsCopy.sort((a, b) => a.rating - b.rating);
-        
       case SORT_OPTIONS.MOST_LIKES:
         return reviewsCopy.sort((a, b) => b.likes - a.likes);
-        
       case SORT_OPTIONS.MOST_DISLIKES:
         return reviewsCopy.sort((a, b) => b.dislikes - a.dislikes);
-        
       default:
         return reviewsCopy;
     }
@@ -821,27 +1054,23 @@ function KidsReviewsContent({ product }) {
 
   const totalPages = Math.ceil(sortedReviews.length / REVIEWS_PER_PAGE);
 
-  // Получаем отзывы для текущей страницы
   const currentReviews = useMemo(() => {
     const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
     const endIndex = startIndex + REVIEWS_PER_PAGE;
     return sortedReviews.slice(startIndex, endIndex);
   }, [sortedReviews, currentPage]);
 
-  // Функция для обработки лайков
-  const handleLike = useCallback((reviewId) => {
+  const handleLike = (reviewId) => {
     setReviews(prevReviews => 
       prevReviews.map(review => {
         if (review.id === reviewId) {
           if (review.userLiked) {
-            // Убираем лайк
             return {
               ...review,
               likes: review.likes - 1,
               userLiked: false
             };
           } else {
-            // Добавляем лайк, убираем дизлайк если был
             const newDislikes = review.userDisliked ? review.dislikes - 1 : review.dislikes;
             return {
               ...review,
@@ -855,22 +1084,32 @@ function KidsReviewsContent({ product }) {
         return review;
       })
     );
-  }, []);
 
-  // Функция для обработки дизлайков
-  const handleDislike = useCallback((reviewId) => {
+    const target = reviews.find(r => String(r.id) === String(reviewId));
+    if (target) {
+      const next = target.userLiked
+        ? { likes: Math.max(0, (target.likes || 0) - 1), userLiked: false, userDisliked: target.userDisliked }
+        : {
+            likes: (target.likes || 0) + 1,
+            dislikes: target.userDisliked ? Math.max(0, (target.dislikes || 0) - 1) : (target.dislikes || 0),
+            userLiked: true,
+            userDisliked: false,
+          };
+      updateReview({ category: "kids", reviewId, patch: { ...target, ...next } }).catch(() => {});
+    }
+  };
+
+  const handleDislike = (reviewId) => {
     setReviews(prevReviews => 
       prevReviews.map(review => {
         if (review.id === reviewId) {
           if (review.userDisliked) {
-            // Убираем дизлайк
             return {
               ...review,
               dislikes: review.dislikes - 1,
               userDisliked: false
             };
           } else {
-            // Добавляем дизлайк, убираем лайк если был
             const newLikes = review.userLiked ? review.likes - 1 : review.likes;
             return {
               ...review,
@@ -884,87 +1123,92 @@ function KidsReviewsContent({ product }) {
         return review;
       })
     );
-  }, []);
 
-  // Функции для пагинации
-  const handlePageChange = useCallback((pageNumber) => {
+    const target = reviews.find(r => String(r.id) === String(reviewId));
+    if (target) {
+      const next = target.userDisliked
+        ? { dislikes: Math.max(0, (target.dislikes || 0) - 1), userDisliked: false, userLiked: target.userLiked }
+        : {
+            dislikes: (target.dislikes || 0) + 1,
+            likes: target.userLiked ? Math.max(0, (target.likes || 0) - 1) : (target.likes || 0),
+            userLiked: false,
+            userDisliked: true,
+          };
+      updateReview({ category: "kids", reviewId, patch: { ...target, ...next } }).catch(() => {});
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      // Прокрутка вверх при смене страницы
-      setTimeout(() => {
-        const reviewsElement = document.querySelector('.reviews-list');
-        if (reviewsElement) {
-          window.scrollTo({
-            top: reviewsElement.offsetTop - 100,
-            behavior: 'smooth'
-          });
-        }
-      }, 50);
+      const reviewsElement = document.querySelector('.reviews-list');
+      if (reviewsElement) {
+        reviewsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
-  }, [totalPages]);
+  };
 
-  const handlePrevPage = useCallback(() => {
-    if (currentPage > 1) {
-      handlePageChange(currentPage - 1);
-    }
-  }, [currentPage, handlePageChange]);
-
-  const handleNextPage = useCallback(() => {
-    if (currentPage < totalPages) {
-      handlePageChange(currentPage + 1);
-    }
-  }, [currentPage, handlePageChange, totalPages]);
-
-  // Обработчик изменения сортировки
-  const handleSortChange = useCallback((e) => {
+  const handleSortChange = (e) => {
     setSortBy(e.target.value);
-    setCurrentPage(1); // Сбрасываем на первую страницу при смене сортировки
-  }, []);
+    setCurrentPage(1);
+  };
 
-  // Функция для открытия модального окна
-  const handleOpenReviewModal = useCallback(() => {
+  const handleOpenReviewModal = () => {
     setShowReviewModal(true);
-    // Блокируем скролл страницы
     document.body.style.overflow = 'hidden';
-  }, []);
+  };
 
-  // Функция для закрытия модального окна
-  const handleCloseReviewModal = useCallback(() => {
+  const handleCloseReviewModal = () => {
     setShowReviewModal(false);
-    // Восстанавливаем скролл страницы
     document.body.style.overflow = 'auto';
-  }, []);
+  };
 
-  // Функция для добавления нового отзыва
-  const handleReviewSubmit = useCallback((newReview) => {
-    setReviews(prevReviews => [newReview, ...prevReviews]);
-    setCurrentPage(1); // Переходим на первую страницу
-  }, []);
+  const handleReviewSubmit = (newReview) => {
+    const reviewToAdd = {
+      ...newReview,
+      id: Date.now(),
+      timestamp: Date.now(),
+      likes: 0,
+      dislikes: 0,
+      userLiked: false,
+      userDisliked: false,
+      isParentReview: true
+    };
+    
+    setReviews(prevReviews => [reviewToAdd, ...prevReviews]);
+    setCurrentPage(1);
+    
+    setNotificationData(reviewToAdd);
+    setShowReviewAdded(true);
+    
+    handleCloseReviewModal();
 
-  // Функция переключения слайдов
-  const handleSlideChange = useCallback((newIndex) => {
+    createReview({ category: "kids", productId: product.id, review: reviewToAdd })
+      .then((created) => {
+        if (!created?.id) return;
+        setReviews(prev => prev.map(r => (r.id === reviewToAdd.id ? created : r)));
+      })
+      .catch(() => {});
+  };
+
+  const handleSlideChange = (newIndex) => {
     if (isAnimating) return;
     setIsAnimating(true);
     setIndex(newIndex);
-  }, [isAnimating]);
+  };
 
-  const onTransitionEnd = useCallback(() => {
+  const onTransitionEnd = () => {
     setIsAnimating(false);
     
-    if (slides.length <= 1) return;
-    
-    // Если дошли до левого края (клон последнего фото)
     if (index === 0) {
       setIndex(slides.length - 2);
     }
-    // Если дошли до правого края (клон первого фото)
     if (index === slides.length - 1) {
       setIndex(1);
     }
-  }, [index, slides.length]);
+  };
 
-  // Обработчик изменения количества
-  const handleQuantityChange = useCallback((change) => {
+  const handleQuantityChange = (change) => {
     setQuantity(prev => {
       const newQuantity = prev + change;
       if (newQuantity >= 1 && newQuantity <= 10) {
@@ -972,149 +1216,93 @@ function KidsReviewsContent({ product }) {
       }
       return prev;
     });
-  }, []);
+  };
 
-  // Обработчик добавления в корзину
-  const handleAddToCart = useCallback(() => {
+  const handleAddToCart = () => {
     if (!activeSize) {
       setShowSizeWarning(true);
       return;
     }
 
-    const addedItem = addToCart(product, activeSize, activeColorName, quantity, activeColor?.src);
+    const addedItem = addToCartFromReviews(product, activeSize, activeColorName, quantity);
     
-    // Показываем уведомление о добавлении в корзину
-    setCartNotificationData({
-      product: {
-        ...product,
-        imageUrl: activeColor?.src
-      },
+    setNotificationData({
+      product: product,
       size: activeSize,
       color: activeColorName,
       quantity: quantity
     });
     setShowCartAdded(true);
-  }, [activeSize, activeColorName, quantity, product, activeColor?.src]);
+  };
 
-  // Обработчик избранного
-  const handleToggleFavorite = useCallback(() => {
-    const result = addToFavorites(product, activeColorName, activeColor?.src);
+  const handleToggleFavorite = () => {
+    const { isAdded } = toggleFavorite(product, activeColorName);
+    setIsFavorite(isAdded);
     
-    setLastFavoriteItem(result.item);
-    setIsFavorite(result.success);
-    
-    if (result.success) {
-      // Показываем уведомление о добавлении в избранное
-      setFavoriteNotificationData({
-        product: {
-          ...product,
-          imageUrl: activeColor?.src
-        }
+    if (isAdded) {
+      setNotificationData({
+        product: product
       });
       setShowFavoriteAdded(true);
-    } else {
-      // Показываем уведомление об удалении из избранного
-      setFavoriteNotificationData({
-        product: {
-          ...product,
-          imageUrl: activeColor?.src
-        }
-      });
-      setShowFavoriteRemoved(true);
     }
-  }, [product, activeColorName, activeColor?.src]);
+  };
 
-  // Обработчик выбора размера из уведомления
-  const handleSizeSelectFromNotification = useCallback((selectedSize) => {
+  const handleSizeSelectFromNotification = (selectedSize) => {
     setActiveSize(selectedSize);
     
-    // Автоматически добавляем в корзину после выбора размера
     setTimeout(() => {
-      const addedItem = addToCart(product, selectedSize, activeColorName, quantity, activeColor?.src);
+      const addedItem = addToCartFromReviews(product, selectedSize, activeColorName, quantity);
       
-      // Показываем уведомление о добавлении в корзину
-      setCartNotificationData({
-        product: {
-          ...product,
-          imageUrl: activeColor?.src
-        },
+      setNotificationData({
+        product: product,
         size: selectedSize,
         color: activeColorName,
         quantity: quantity
       });
       setShowCartAdded(true);
     }, 300);
-  }, [product, activeColorName, quantity, activeColor?.src]);
+  };
 
-  // Обработчик отмены удаления из избранного
-  const handleUndoRemoveFavorite = useCallback(() => {
-    if (lastFavoriteItem) {
-      // Добавляем обратно в избранное
-      const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-      favorites.push(lastFavoriteItem);
-      localStorage.setItem('favorites', JSON.stringify(favorites));
-      window.dispatchEvent(new Event('favoritesUpdated'));
-      
-      setIsFavorite(true);
-      
-      // Показываем уведомление о добавлении в избранное
-      setFavoriteNotificationData({
-        product: {
-          ...product,
-          imageUrl: lastFavoriteItem.imageUrl
-        }
-      });
-      setShowFavoriteAdded(true);
-    }
-  }, [lastFavoriteItem]);
-
-  // Обработчик открытия корзины
-  const handleViewCart = useCallback(() => {
-    // Здесь можно добавить логику открытия корзины
-    console.log("Opening cart...");
-    // Например: window.dispatchEvent(new Event('openCart'));
-  }, []);
-
-  // Проверяем, есть ли товар в избранном
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    const isProductFavorite = favorites.some(fav => 
-      fav.productId === product.id && 
-      fav.color === activeColorName
-    );
-    setIsFavorite(isProductFavorite);
-  }, [product.id, activeColorName]);
-
-  // Данные статистики для kids
-  const statsData = useMemo(() => [
-    { stars: 5, count: 8, percentage: 67, color: "#20c997" },
-    { stars: 4, count: 2, percentage: 17, color: "#5eead4" },
-    { stars: 3, count: 1, percentage: 8, color: "#ffc107" },
-    { stars: 2, count: 1, percentage: 8, color: "#fd7e14" },
-    { stars: 1, count: 0, percentage: 0, color: "#dc3545" },
-  ], []);
-
-  // Подсчёт общего рейтинга и статистики
-  const totalRating = useMemo(() => {
+  const { statsData, totalRating } = useMemo(() => {
     const ratings = reviews.filter(r => r.rating > 0).map(r => r.rating);
-    const average = ratings.length > 0 
-      ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+    const totalRatings = ratings.length;
+    
+    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    ratings.forEach(rating => {
+      ratingDistribution[rating]++;
+    });
+    
+    const stats = [5, 4, 3, 2, 1].map(stars => {
+      const count = ratingDistribution[stars];
+      const percentage = totalRatings > 0 ? Math.round((count / totalRatings) * 100) : 0;
+      
+      const colors = ["#20c997", "#5eead4", "#ffc107", "#fd7e14", "#dc3545"];
+      
+      return {
+        stars,
+        count,
+        percentage,
+        color: colors[5 - stars]
+      };
+    });
+    
+    const average = totalRatings > 0 
+      ? (ratings.reduce((a, b) => a + b, 0) / totalRatings).toFixed(1)
       : "0.0";
     
     const recommendedCount = reviews.filter(r => r.rating >= 4).length;
-    const recommendationPercentage = reviews.length > 0 
-      ? Math.round((recommendedCount / reviews.length) * 100)
-      : 0;
+    const recommendationPercentage = Math.round((recommendedCount / reviews.length) * 100);
     
-    return { average, recommendedCount, recommendationPercentage };
+    return {
+      statsData: stats,
+      totalRating: {
+        average,
+        recommendedCount,
+        recommendationPercentage,
+        total: reviews.length
+      }
+    };
   }, [reviews]);
-
-  // Если нет цветов, используем основное изображение
-  useEffect(() => {
-    if (colorMap.length === 0 && product.avatar) {
-      setIndex(0);
-    }
-  }, [colorMap.length, product.avatar]);
 
   return (
     <>
@@ -1123,21 +1311,21 @@ function KidsReviewsContent({ product }) {
           <div className="product-layout">
             {/* ЛЕВАЯ КОЛОНКА: ОТЗЫВЫ */}
             <div className="text-info-column">
-              {/* Статистика отзывов */}
-              <h2 className="reviews-main-title">{reviews.length} reviews</h2>
+              <h2 className="reviews-main-title">{totalRating.total} Parent Reviews</h2>
 
               <div className="reviews-summary-box">
                 <div className="rating-overview">
                   <span className="rating-number">{totalRating.average}</span>
                   <div className="rating-stars">
-                    <FaStar />
-                    <FaStar />
-                    <FaStar />
-                    <FaStar />
-                    <FaRegStar />
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className="star-icon">
+                        {i < Math.floor(parseFloat(totalRating.average)) ? 
+                          <FaStar /> : <FaRegStar />}
+                      </span>
+                    ))}
                   </div>
                   <p className="recommend-text">
-                    {totalRating.recommendedCount} out of {reviews.length} ({totalRating.recommendationPercentage}%) <br />
+                    {totalRating.recommendedCount} out of {totalRating.total} ({totalRating.recommendationPercentage}%) <br />
                     <span className="recommend-sub">Parents recommend this product</span>
                   </p>
                 </div>
@@ -1161,13 +1349,12 @@ function KidsReviewsContent({ product }) {
                 </div>
               </div>
 
-              {/* Кнопки действий */}
               <div className="reviews-actions-row">
                 <button 
                   className="leave-review-btn"
                   onClick={handleOpenReviewModal}
                 >
-                  Leave a review
+                  Leave a Parent Review
                 </button>
                 <div className="sort-by">
                   <span>Sort by</span>
@@ -1186,20 +1373,28 @@ function KidsReviewsContent({ product }) {
                 </div>
               </div>
 
-              {/* Список отзывов */}
               <div className="reviews-list">
                 {currentReviews.map((review) => (
                   <div 
                     key={review.id} 
-                    className="review-item"
+                    className={`review-item ${review.isReply ? 'is-reply' : ''}`}
                   >
                     <div className="review-header">
                       <div className="reviewer-info">
-                        <h4 className="reviewer-name">{review.name}</h4>
-                        <span className="review-date">{review.date}</span>
+                        <div className="reviewer-avatar-small">
+                          <span className="avatar-initials-small">
+                            {review.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="reviewer-name">{review.name}</h4>
+                          {review.childAge && (
+                            <span className="review-child-badge">Child: {review.childAge}</span>
+                          )}
+                          <span className="review-date">{review.date}</span>
+                        </div>
                       </div>
                       
-                      {/* Показываем звезды только если rating > 0 */}
                       {review.rating > 0 && (
                         <div className="review-stars-small">
                           {Array.from({ length: 5 }).map((_, i) => (
@@ -1236,18 +1431,16 @@ function KidsReviewsContent({ product }) {
                 ))}
               </div>
 
-              {/* ПАГИНАЦИЯ - ЦИФРЫ 1 2 3 */}
               {totalPages > 1 && (
                 <div className="reviews-pagination">
                   <button 
                     className="pagination-btn"
-                    onClick={handlePrevPage}
+                    onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
                     <FaChevronLeft />
                   </button>
                   
-                  {/* Цифры страниц */}
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
                     <button
                       key={pageNumber}
@@ -1260,7 +1453,7 @@ function KidsReviewsContent({ product }) {
                   
                   <button 
                     className="pagination-btn"
-                    onClick={handleNextPage}
+                    onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
                     <FaChevronRight />
@@ -1273,7 +1466,7 @@ function KidsReviewsContent({ product }) {
               )}
             </div>
 
-            {/* ПРАВАЯ КОЛОНКА: КАРТОЧКА ТОВАРА СО СЛАЙДЕРОМ */}
+            {/* ПРАВАЯ КОЛОНКА: КАРТОЧКА ТОВАРА */}
             <div className="sticky-card-column">
               <div className="card-exact">
                 <div className="image-wrapper-exact">
@@ -1281,28 +1474,13 @@ function KidsReviewsContent({ product }) {
                     <div className="badge-exact">-{product.discount}%</div>
                   )}
 
-                  <div className="rating-exact">
-                    {[...Array(5)].map((_, i) => (
-                      <span
-                        key={i}
-                        className={`star-icon ${i < rating ? "filled" : "empty"}`}
-                        onClick={() => setRating(i + 1)}
-                      >
-                        {i < rating ? <FaStar /> : <FaRegStar />}
-                      </span>
-                    ))}
-                  </div>
-
                   <div className="img-container viewport">
-                    {/* ЛЕВАЯ КНОПКА - показываем только если есть более 1 слайда */}
-                    {slides.length > 1 && (
-                      <button 
-                        className="slider-btn left" 
-                        onClick={() => handleSlideChange(index - 1)}
-                      >
-                        ‹
-                      </button>
-                    )}
+                    <button 
+                      className="slider-btn left" 
+                      onClick={() => handleSlideChange(index - 1)}
+                    >
+                      ‹
+                    </button>
 
                     <div
                       className="slider-track-details"
@@ -1313,39 +1491,28 @@ function KidsReviewsContent({ product }) {
                       onTransitionEnd={onTransitionEnd}
                     >
                       {slides.map((img, i) => (
-                        <img 
-                          key={i} 
-                          src={img} 
-                          className="image-exact slide-img" 
-                          alt={`${product.name} view ${i + 1}`}
-                          onError={(e) => {
-                            e.target.src = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=400&fit=crop";
-                          }}
-                        />
+                        <img key={i} src={img} className="image-exact slide-img" alt="" />
                       ))}
                     </div>
 
-                    {/* ПРАВАЯ КНОПКА - показываем только если есть более 1 слайда */}
-                    {slides.length > 1 && (
-                      <button 
-                        className="slider-btn right" 
-                        onClick={() => handleSlideChange(index + 1)}
-                      >
-                        ›
-                      </button>
-                    )}
+                    <button 
+                      className="slider-btn right" 
+                      onClick={() => handleSlideChange(index + 1)}
+                    >
+                      ›
+                    </button>
                   </div>
 
                   <button 
                     className={`wishlist-btn ${isFavorite ? 'active' : ''}`}
                     onClick={handleToggleFavorite}
                   >
-                    {isFavorite ? '❤' : '🤍'}
+                    {isFavorite ? <FaHeart /> : <FaRegHeart />}
                   </button>
                 </div>
 
                 <div className="card-body-exact">
-                  <p className="category-text">{product.kategory || "Kids Collection"}</p>
+                  <p className="category-text">Kids Collection</p>
                   <h4 className="title-text">{product.name}</h4>
 
                   <div className="price-row">
@@ -1359,7 +1526,7 @@ function KidsReviewsContent({ product }) {
                     <div className="selector-group">
                       <label className="selector-label">Size:</label>
                       <div className="sizes-block">
-                        {["XS", "S", "M", "L", "XL"].map((s) => (
+                        {["XS (2-4Y)", "S (4-6Y)", "M (6-8Y)", "L (8-10Y)", "XL (10-12Y)"].map((s) => (
                           <span
                             key={s}
                             className={`size-option ${activeSize === s ? "active" : ""}`}
@@ -1371,25 +1538,20 @@ function KidsReviewsContent({ product }) {
                       </div>
                     </div>
 
-                    {colorMap.length > 0 && (
-                      <div className="selector-group">
-                        <label className="selector-label">Color:</label>
-                        <div className="colors-block">
-                          {colorMap.map((color, i) => (
-                            <span
-                              key={color.name}
-                              className={`dot d-${color.name} ${
-                                activeColorName === color.name ? "active" : ""
-                              }`}
-                              onClick={() => handleSlideChange(i + 1)}
-                            />
-                          ))}
-                        </div>
-                        {activeColor && (
-                          <p className="selected-color-text">Selected: {activeColor.label}</p>
-                        )}
+                    <div className="selector-group">
+                      <label className="selector-label">Color:</label>
+                      <div className="colors-block">
+                        {colorMap.map((color, i) => (
+                          <span
+                            key={color.name}
+                            className={`dot d-${color.name} ${
+                              activeColorName === color.name ? "active" : ""
+                            }`}
+                            onClick={() => handleSlideChange(i + 1)}
+                          />
+                        ))}
                       </div>
-                    )}
+                    </div>
 
                     <div className="selector-group">
                       <label className="selector-label">Quantity:</label>
@@ -1423,51 +1585,45 @@ function KidsReviewsContent({ product }) {
         </div>
       </div>
 
-      {/* МОДАЛЬНОЕ ОКНО ДЛЯ ОТЗЫВОВ */}
       {showReviewModal && (
-        <LeaveReview
+        <KidsLeaveReview
           onClose={handleCloseReviewModal}
           onReviewSubmit={handleReviewSubmit}
         />
       )}
 
-      {/* УВЕДОМЛЕНИЯ */}
-      {/* ADDED TO CART NOTIFICATION */}
-      {showCartAdded && cartNotificationData && (
-        <CartAddedNotification
+      {showReviewAdded && notificationData && (
+        <KidsReviewAddedNotification
+          isOpen={showReviewAdded}
+          onClose={() => setShowReviewAdded(false)}
+          review={notificationData}
+        />
+      )}
+
+      {showCartAdded && notificationData && (
+        <KidsCartAddedNotification
           isOpen={showCartAdded}
           onClose={() => setShowCartAdded(false)}
-          product={cartNotificationData.product}
-          size={cartNotificationData.size}
-          color={cartNotificationData.color}
-          quantity={cartNotificationData.quantity}
-          onViewCart={handleViewCart}
+          product={notificationData.product}
+          size={notificationData.size}
+          color={notificationData.color}
+          quantity={notificationData.quantity}
         />
       )}
 
-      {/* SIZE WARNING NOTIFICATION */}
-      <SizeWarningNotification
-        isOpen={showSizeWarning}
-        onClose={() => setShowSizeWarning(false)}
-        onSizeSelect={handleSizeSelectFromNotification}
-      />
-
-      {/* FAVORITE ADDED NOTIFICATION */}
-      {showFavoriteAdded && favoriteNotificationData && (
-        <FavoriteAddedNotification
+      {showFavoriteAdded && notificationData && (
+        <KidsFavoriteAddedNotification
           isOpen={showFavoriteAdded}
           onClose={() => setShowFavoriteAdded(false)}
-          product={favoriteNotificationData.product}
+          product={notificationData.product}
         />
       )}
 
-      {/* FAVORITE REMOVED NOTIFICATION */}
-      {showFavoriteRemoved && favoriteNotificationData && (
-        <FavoriteRemovedNotification
-          isOpen={showFavoriteRemoved}
-          onClose={() => setShowFavoriteRemoved(false)}
-          onUndo={handleUndoRemoveFavorite}
-          product={favoriteNotificationData.product}
+      {showSizeWarning && (
+        <KidsSizeWarningNotification
+          isOpen={showSizeWarning}
+          onClose={() => setShowSizeWarning(false)}
+          onSizeSelect={handleSizeSelectFromNotification}
         />
       )}
     </>

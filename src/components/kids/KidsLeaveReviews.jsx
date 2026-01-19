@@ -1,434 +1,329 @@
-import { useRef, useState } from "react";
-import emailjs from "@emailjs/browser";
-import { FaStar, FaRegStar, FaTimes, FaImage, FaChild } from "react-icons/fa";
-// import "./KidsLeaveReviews.css";
+import React, { useState } from "react";
+import { 
+  FaStar, 
+  FaRegStar, 
+  FaImage, 
+  FaPaperPlane,
+  FaTimes,
+  FaUserCircle
+} from "react-icons/fa";
+// import "./LeaveReview.css";
 
-export default function KidsLeaveReviews({ onClose }) {
-  const formRef = useRef();
-  const fileInputRef = useRef();
-  const parentNameRef = useRef();
-  const emailRef = useRef();
-  const childNameRef = useRef();
-  const reviewRef = useRef();
-  
-  const [loading, setLoading] = useState(false);
+export default function LeaveReview({ onReviewSubmit, onCancel, currentUser }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [childAge, setChildAge] = useState("");
-  const [childGender, setChildGender] = useState("");
-  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!parentNameRef.current?.value.trim()) {
-      errors.parentName = "Parent name is required";
-    }
-    
-    if (!emailRef.current?.value.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(emailRef.current.value)) {
-      errors.email = "Please enter a valid email";
-    }
-    
-    if (!childAge) {
-      errors.childAge = "Child's age is required";
-    }
-    
-    if (rating === 0) {
-      errors.rating = "Please select a rating";
-    }
-    
-    if (!reviewRef.current?.value.trim()) {
-      errors.review = "Review is required";
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  // Если передали currentUser, используем его данные
+  const userName = currentUser?.name || (currentUser?.email ? currentUser.email.split('@')[0] : "");
+  const userEmail = currentUser?.email || "";
+  const userAvatar = currentUser?.avatar || null;
 
   const handleRatingClick = (value) => {
     setRating(value);
-    if (formErrors.rating) {
-      setFormErrors(prev => ({ ...prev, rating: "" }));
+    if (errors.rating) {
+      setErrors(prev => ({ ...prev, rating: "" }));
     }
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) {
+      // Проверка размера файла (макс 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ 
+          ...prev, 
+          image: "Image size should be less than 5MB" 
+        }));
+        return;
+      }
 
-    // Проверка размера файла
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image size should be less than 5MB");
-      return;
+      // Проверка типа файла
+      if (!file.type.match('image.*')) {
+        setErrors(prev => ({ 
+          ...prev, 
+          image: "Please select an image file (JPG, PNG, GIF)" 
+        }));
+        return;
+      }
+
+      setImageFile(file);
+      setErrors(prev => ({ ...prev, image: "" }));
+      
+      // Создаем preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-
-    // Проверка типа файла
-    if (!file.type.match('image.*')) {
-      alert("Please select an image file (JPG, PNG, GIF)");
-      return;
-    }
-
-    setImageFile(file);
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.onerror = () => {
-      alert("Error reading image file");
-    };
-    reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
     setImagePreview(null);
     setImageFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (rating === 0) newErrors.rating = "Please select a rating";
+    if (!reviewText.trim()) newErrors.reviewText = "Review text is required";
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
+      // Прокручиваем к первой ошибке
+      const firstErrorField = document.querySelector('[data-error="true"]');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
-    
-    setLoading(true);
+
+    setIsSubmitting(true);
 
     try {
       let imageUrl = "";
       
-      // Загрузка изображения если есть
+      // Если есть изображение, загружаем его на ImgBB
       if (imageFile) {
-        try {
-          const formData = new FormData();
-          formData.append("image", imageFile);
-          
-          const imgbbResponse = await fetch(
-            `https://api.imgbb.com/1/upload?key=${process.env.REACT_APP_IMGBB_API_KEY || 'YOUR_IMGBB_API_KEY'}`,
-            {
-              method: "POST",
-              body: formData
-            }
-          );
-          
-          if (!imgbbResponse.ok) {
-            throw new Error("Image upload failed");
-          }
-          
-          const imgbbData = await imgbbResponse.json();
-          if (imgbbData.success) {
-            imageUrl = imgbbData.data.url;
-          }
-        } catch (imageError) {
-          console.warn("Image upload failed, continuing without image:", imageError);
-          // Продолжаем без изображения
-        }
+        const formData = new FormData();
+        formData.append("image", imageFile);
+        
+        // Загрузка на ImgBB (замените ключ на ваш реальный)
+        // Для тестирования можно оставить пустую строку
+        // const imgbbResponse = await fetch("https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY", {
+        //   method: "POST",
+        //   body: formData
+        // });
+        
+        // const imgbbData = await imgbbResponse.json();
+        // if (imgbbData.success) {
+        //   imageUrl = imgbbData.data.url;
+        // }
+        imageUrl = ""; // Временно
       }
 
-      const templateParams = {
-        parent_name: parentNameRef.current.value,
-        email: emailRef.current.value,
-        child_name: childNameRef.current?.value || "Not specified",
-        child_age: childAge,
-        child_gender: childGender || "Not specified",
-        rating: rating,
-        review: reviewRef.current.value,
-        image_url: imageUrl || "No image uploaded",
-        date: new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        }),
-        timestamp: new Date().toISOString(),
-        product_type: "Kids Product"
+      // Создаем объект отзыва
+      const newReview = {
+        id: Date.now(),
+        name: userName,
+        email: userEmail,
+        rating,
+        text: reviewText.trim(),
+        date: "Just now",
+        timestamp: Date.now(),
+        likes: 0,
+        dislikes: 0,
+        userLiked: false,
+        userDisliked: false,
+        imageUrl,
+        avatar: userAvatar
       };
 
-      await emailjs.send(
-        process.env.REACT_APP_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID",
-        process.env.REACT_APP_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID",
-        templateParams,
-        process.env.REACT_APP_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY"
-      );
+      console.log("Submitting review from LeaveReview:", newReview);
+      
+      // Вызываем колбэк с новым отзывом
+      if (onReviewSubmit) {
+        onReviewSubmit(newReview);
+      } else {
+        console.error("onReviewSubmit callback is not provided!");
+      }
 
-      alert("Thank you! Your review has been submitted successfully! 👶✨");
+      // Сбрасываем форму
+      resetForm();
       
-      // Сброс формы
-      formRef.current.reset();
-      setImagePreview(null);
-      setImageFile(null);
-      setRating(0);
-      setChildAge("");
-      setChildGender("");
-      setFormErrors({});
-      
-      onClose?.();
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert(`Failed to submit review. ${error.message || "Please try again."}`);
+      setErrors(prev => ({ 
+        ...prev, 
+        submit: "Failed to submit review. Please try again." 
+      }));
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleAgeChange = (e) => {
-    setChildAge(e.target.value);
-    if (formErrors.childAge) {
-      setFormErrors(prev => ({ ...prev, childAge: "" }));
+  const resetForm = () => {
+    setRating(0);
+    setReviewText("");
+    setImagePreview(null);
+    setImageFile(null);
+    setErrors({});
+  };
+
+  const handleCancel = () => {
+    console.log("Canceling review form");
+    resetForm();
+    if (onCancel) {
+      onCancel();
     }
   };
 
   return (
-    <div className="kids-review-modal-overlay">
-      <div className="kids-review-modal">
-        <div className="review-modal-header kids-header">
-          <FaChild className="kids-icon" />
-          <h2>Kids Product Review</h2>
+    <div className="leave-review-inline">
+      <div className="review-form-header">
+        <h3>Write Your Review</h3>
+        <p className="review-form-subtitle">Share your experience with this product</p>
+      </div>
+
+      {/* Информация о пользователе */}
+      {currentUser && (
+        <div className="user-info-header">
+          <div className="user-avatar">
+            {userAvatar ? (
+              <img src={userAvatar} alt={userName} />
+            ) : (
+              <FaUserCircle />
+            )}
+          </div>
+          <div className="user-details">
+            <h4 className="user-name">{userName}</h4>
+            <p className="user-email">{userEmail}</p>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="review-form-inline">
+        <div className="form-group-inline" data-error={!!errors.rating}>
+          <label className="form-label">Your Rating *</label>
+          <div className="rating-stars-inline">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                className={`star-btn-inline ${star <= (hoverRating || rating) ? 'active' : ''}`}
+                onClick={() => handleRatingClick(star)}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+                disabled={isSubmitting}
+              >
+                {star <= (hoverRating || rating) ? (
+                  <FaStar className="star-filled" />
+                ) : (
+                  <FaRegStar className="star-empty" />
+                )}
+              </button>
+            ))}
+            <span className="rating-text-inline">
+              {rating > 0 ? `${rating} star${rating > 1 ? 's' : ''}` : "Select your rating"}
+            </span>
+          </div>
+          {errors.rating && <span className="error-message">{errors.rating}</span>}
+        </div>
+
+        <div className="form-group-inline" data-error={!!errors.reviewText}>
+          <label htmlFor="reviewText" className="form-label">
+            Your Review *
+          </label>
+          <textarea
+            id="reviewText"
+            placeholder="Share your detailed experience with this product. What did you like or dislike? How does it fit? How's the quality?"
+            value={reviewText}
+            onChange={(e) => {
+              setReviewText(e.target.value);
+              if (errors.reviewText) setErrors(prev => ({ ...prev, reviewText: "" }));
+            }}
+            disabled={isSubmitting}
+            rows="6"
+            className={`form-textarea ${errors.reviewText ? 'error' : ''}`}
+            maxLength="2000"
+          />
+          {errors.reviewText && <span className="error-message">{errors.reviewText}</span>}
+          <div className="character-count">
+            {reviewText.length}/2000 characters
+          </div>
+        </div>
+
+        <div className="form-group-inline">
+          <label className="form-label">Upload Photo (Optional)</label>
+          {imagePreview ? (
+            <div className="image-preview-inline">
+              <div className="preview-image-wrapper">
+                <img src={imagePreview} alt="Preview" />
+                <button 
+                  type="button" 
+                  className="remove-preview-btn"
+                  onClick={removeImage}
+                  disabled={isSubmitting}
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              <span className="image-hint">Click the X to remove</span>
+            </div>
+          ) : (
+            <div className="image-upload-inline">
+              <input
+                type="file"
+                id="imageUpload"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={isSubmitting}
+                className="file-input-hidden"
+              />
+              <label htmlFor="imageUpload" className="upload-area">
+                <FaImage className="upload-icon-large" />
+                <div className="upload-text">
+                  <p>Click to upload photo</p>
+                  <p className="upload-hint-small">JPG, PNG or GIF • Max 5MB</p>
+                </div>
+              </label>
+            </div>
+          )}
+          {errors.image && <span className="error-message">{errors.image}</span>}
+        </div>
+
+        {errors.submit && (
+          <div className="submit-error">
+            <span className="error-message">{errors.submit}</span>
+          </div>
+        )}
+
+        <div className="form-actions-inline">
+          <button 
+            type="submit" 
+            className="submit-btn-inline"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="spinner-small"></span>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <FaPaperPlane className="submit-icon" />
+                Submit Review
+              </>
+            )}
+          </button>
           <button 
             type="button" 
-            className="close-btn" 
-            onClick={onClose}
-            disabled={loading}
-            aria-label="Close modal"
+            className="cancel-btn-inline"
+            onClick={handleCancel}
+            disabled={isSubmitting}
           >
-            <FaTimes />
+            Cancel
           </button>
         </div>
 
-        <form ref={formRef} onSubmit={handleSubmit} className="kids-review-form" noValidate>
-          <div className="form-section">
-            <h3 className="section-title">👨‍👩‍👧‍👦 Parent Information</h3>
-            
-            <div className="form-group">
-              <label htmlFor="parent_name">Your Name *</label>
-              <input
-                ref={parentNameRef}
-                id="parent_name"
-                name="parent_name"
-                type="text"
-                placeholder="Enter your full name"
-                required
-                disabled={loading}
-                aria-invalid={!!formErrors.parentName}
-                aria-describedby={formErrors.parentName ? "parentName-error" : undefined}
-              />
-              {formErrors.parentName && (
-                <span id="parentName-error" className="error-message">{formErrors.parentName}</span>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="email">Your Email *</label>
-              <input
-                ref={emailRef}
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email address"
-                required
-                disabled={loading}
-                aria-invalid={!!formErrors.email}
-                aria-describedby={formErrors.email ? "email-error" : undefined}
-              />
-              {formErrors.email && (
-                <span id="email-error" className="error-message">{formErrors.email}</span>
-              )}
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3 className="section-title">👶 Child Information</h3>
-            
-            <div className="form-group">
-              <label htmlFor="child_name">Child's Name (Optional)</label>
-              <input
-                ref={childNameRef}
-                id="child_name"
-                name="child_name"
-                type="text"
-                placeholder="Enter child's first name"
-                disabled={loading}
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="child_age">Child's Age *</label>
-                <select
-                  id="child_age"
-                  value={childAge}
-                  onChange={handleAgeChange}
-                  required
-                  disabled={loading}
-                  aria-invalid={!!formErrors.childAge}
-                  aria-describedby={formErrors.childAge ? "childAge-error" : undefined}
-                >
-                  <option value="">Select age range</option>
-                  <option value="0-1">0-1 year</option>
-                  <option value="1-2">1-2 years</option>
-                  <option value="2-3">2-3 years</option>
-                  <option value="3-4">3-4 years</option>
-                  <option value="4-6">4-6 years</option>
-                  <option value="6-8">6-8 years</option>
-                  <option value="8-10">8-10 years</option>
-                  <option value="10-12">10-12 years</option>
-                  <option value="12+">12+ years</option>
-                </select>
-                {formErrors.childAge && (
-                  <span id="childAge-error" className="error-message">{formErrors.childAge}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="child_gender">Child's Gender (Optional)</label>
-                <select
-                  id="child_gender"
-                  value={childGender}
-                  onChange={(e) => setChildGender(e.target.value)}
-                  disabled={loading}
-                >
-                  <option value="">Select if you'd like to share</option>
-                  <option value="boy">Boy</option>
-                  <option value="girl">Girl</option>
-                  <option value="prefer_not_to_say">Prefer not to say</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3 className="section-title">⭐ Product Review</h3>
-            
-            <div className="form-group">
-              <label>Your Rating *</label>
-              <div className="rating-stars">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    className="star-btn"
-                    onClick={() => handleRatingClick(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    disabled={loading}
-                    aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                  >
-                    {star <= (hoverRating || rating) ? (
-                      <FaStar className="star-filled" />
-                    ) : (
-                      <FaRegStar className="star-empty" />
-                    )}
-                  </button>
-                ))}
-                <span className="rating-value">
-                  {rating > 0 ? `${rating} star${rating > 1 ? 's' : ''}` : "Click stars to rate"}
-                </span>
-              </div>
-              {formErrors.rating && (
-                <span className="error-message">{formErrors.rating}</span>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="review">Your Review *</label>
-              <textarea
-                ref={reviewRef}
-                id="review"
-                name="review"
-                placeholder="Share your experience with this kids product...
-• How does it fit?
-• Is it comfortable for your child?
-• How is the quality and durability?
-• Would you recommend it to other parents?"
-                required
-                rows="6"
-                disabled={loading}
-                aria-invalid={!!formErrors.review}
-                aria-describedby={formErrors.review ? "review-error" : undefined}
-              />
-              {formErrors.review && (
-                <span id="review-error" className="error-message">{formErrors.review}</span>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="image">📸 Upload Photo (Optional)</label>
-              <div className="image-upload-area">
-                {imagePreview ? (
-                  <div className="image-preview">
-                    <img src={imagePreview} alt="Preview" />
-                    <button 
-                      type="button" 
-                      className="remove-image"
-                      onClick={removeImage}
-                      disabled={loading}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div className="upload-placeholder">
-                    <FaImage className="upload-icon" />
-                    <p>Upload a photo of your child using the product</p>
-                    <p className="upload-note">Max 5MB • JPG, PNG, GIF</p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      id="image"
-                      name="image"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      disabled={loading}
-                      className="file-input"
-                    />
-                    <label htmlFor="image" className="upload-button">
-                      Choose Photo
-                    </label>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="form-buttons">
-            <button 
-              type="submit" 
-              className="submit-button primary"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span className="spinner"></span>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <FaChild /> Submit Kids Review
-                </>
-              )}
-            </button>
-            <button 
-              type="button" 
-              className="submit-button secondary"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </button>
-          </div>
-          
-          <div className="form-disclaimer">
-            <p>Your review will be published after moderation. We respect your privacy and will never share your child's personal information.</p>
-          </div>
-        </form>
-      </div>
+        <div className="form-note">
+          <p className="note-text">
+            * Required fields. Your email will not be published.
+          </p>
+        </div>
+      </form>
     </div>
   );
 }

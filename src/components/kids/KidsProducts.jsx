@@ -194,7 +194,7 @@ export default function KidsProducts() {
                 />
 
                 {item.hasDiscount && (
-                  <span className="sale-badge">-{item.discount}%</span>
+                  <span className="sale-badg">-{item.discount}%</span>
                 )}
 
                 <button

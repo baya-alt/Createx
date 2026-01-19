@@ -1,0 +1,151 @@
+.faq-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.faq-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.faq-header h1 {
+  font-size: 36px;
+  color: #1e212c;
+  margin-bottom: 16px;
+}
+
+.faq-header p {
+  color: #787a80;
+  font-size: 16px;
+}
+
+.faq-list {
+  margin-bottom: 50px;
+}
+
+.faq-item {
+  border: 1px solid #e5e8ed;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.faq-item.open {
+  border-color: #17696a;
+  box-shadow: 0 4px 12px rgba(23, 105, 106, 0.1);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 20px 24px;
+  background: white;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e212c;
+  text-align: left;
+  transition: background 0.3s ease;
+}
+
+.faq-question:hover {
+  background: #f8fafc;
+}
+
+.faq-icon {
+  font-size: 24px;
+  color: #17696a;
+  font-weight: 400;
+}
+
+.faq-answer {
+  padding: 0 24px 20px;
+  color: #787a80;
+  line-height: 1.6;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.faq-contact {
+  background: #f8fafc;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.faq-contact h3 {
+  color: #1e212c;
+  margin-bottom: 12px;
+}
+
+.faq-contact p {
+  color: #787a80;
+  margin-bottom: 24px;
+}
+
+.contact-options {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.contact-btn {
+  padding: 14px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.contact-btn.phone {
+  background: #17696a;
+  color: white;
+}
+
+.contact-btn.phone:hover {
+  background: #145c5d;
+  transform: translateY(-2px);
+}
+
+.contact-btn.email {
+  background: white;
+  color: #17696a;
+  border: 2px solid #17696a;
+}
+
+.contact-btn.email:hover {
+  background: #17696a;
+  color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .faq-header h1 {
+    font-size: 28px;
+  }
+  
+  .faq-question {
+    padding: 16px 20px;
+    font-size: 15px;
+  }
+  
+  .contact-options {
+    flex-direction: column;
+  }
+  
+  .contact-btn {
+    justify-content: center;
+  }
+}

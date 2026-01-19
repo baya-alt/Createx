@@ -1,172 +1,263 @@
-/* ================= TOP BAR ================= */
-
-.header-wrapper {
-  width: 100%;
-  font-family: 'Ubuntu', sans-serif;
-  position: relative;
+/* --- ОСНОВНЫЕ ПЕРЕМЕННЫЕ --- */
+:root {
+  --top-bar-bg: #1e212c;
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-bright: #ffffff;
+  --accent-color: #17696a;
+  --danger-color: #ef4444;
+  --dropdown-bg: #ffffff;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
-.container {
-  max-width: 1200px;
+/* --- КОНТЕЙНЕР --- */
+.top-bar {
+  background-color: var(--top-bar-bg);
+  height: 44px;
+  display: flex;
+  align-items: center;
+  font-family: 'Ubuntu', sans-serif;
+  position: relative;
+  z-index: 1000;
+}
+
+.top-bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1230px;
   margin: 0 auto;
   padding: 0 15px;
 }
 
-.top-bar {
-  background-color: #1E212C;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.top-bar-content {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
+/* --- ЛЕВАЯ ЧАСТЬ (Контакты) --- */
 .availability {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
   text-decoration: none;
+  font-size: 13px;
+  transition: var(--transition);
 }
 
 .availability strong {
-  color: #fff;
-  font-weight: 700;
+  color: var(--text-bright);
+  font-weight: 600;
 }
 
-.top-nav a {
-  color: rgba(255, 255, 255, 0.6);
-  text-decoration: none;
-  margin: 0 15px;
+.availability:hover {
+  color: var(--text-bright);
 }
 
+/* --- ЦЕНТРАЛЬНАЯ НАВИГАЦИЯ --- */
+.top-nav {
+  display: flex;
+  gap: 28px;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: var(--transition);
+}
+
+.nav-link-text {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-link:hover .nav-link-text {
+  color: var(--text-bright);
+}
+
+/* --- ПРАВАЯ ЧАСТЬ (Действия) --- */
 .top-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
-/* ================= LANGUAGE ================= */
-
-.lang-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.lang-btn {
+/* Кнопки переключателей */
+.lang-btn, .login-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--text-bright);
   cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  padding: 4px 6px;
-}
-
-.flag-icon {
-  width: 16px;
-  height: 12px;
-  object-fit: cover;
-  border-radius: 2px;
-  display: block;
-}
-
-.arrow-down {
-  font-size: 9px;
-  opacity: 0.8;
-}
-
-.lang-dropdown {
-  position: absolute;
-  top: 32px;
-  right: 0;
-
-  width: 140px;
-  background: #fff;
-
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.15);
-  z-index: 300;
-  overflow: hidden;
-}
-
-.lang-dropdown div {
-  padding: 8px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-
-  font-size: 12px;
-  color: #1E212C;
-  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: var(--transition);
+  z-index: 9999999999999;
 }
 
-.lang-dropdown div:hover {
-  background: #f4f5f7;
+.lang-btn:hover, .login-btn:hover {
+  opacity: 0.8;
 }
 
-.lang-dropdown img {
-  width: 16px;
+.flag-icon {
+  width: 18px;
   height: 12px;
   object-fit: cover;
   border-radius: 2px;
 }
 
-/* ================= USER ================= */
-
-.user-auth {
-  position: relative;
+.arrow-down {
+  font-size: 10px;
+  transition: var(--transition);
 }
 
-.login-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
+/* --- ВЫПАДАЮЩИЕ МЕНЮ (DROPDOWNS) --- */
+.lang-dropdown, .user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--dropdown-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  margin-top: 8px;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.3s ease;
+  z-index: 2000;
+}
 
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Элементы меню */
+.lang-option, .user-dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+  color: #1e293b;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
 
-  font-size: 12px;
+.lang-option:hover, .user-dropdown-item:hover {
+  background-color: #f1f5f9;
+  color: var(--accent-color);
+}
+
+/* --- АВАТАРЫ (Header & Dropdown) --- */
+.header-profile-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
   font-weight: 700;
 }
 
-.user-dropdown {
-  position: absolute;
-  right: 0;
-  top: 38px;
-
-  min-width: 160px;
-  background: #fff;
-
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.15);
-  z-index: 300;
+.header-profile-photo, .dropdown-profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.user-dropdown-item {
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #17696a;
-  cursor: pointer;
+/* Шапка выпадающего меню пользователя */
+.user-dropdown-header {
+  padding: 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.user-dropdown-item:hover {
-  background: #f4f5f7;
+.dropdown-profile-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.dropdown-user-info .user-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.dropdown-user-info .user-email {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Разделители и Logout */
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 4px 0;
 }
 
 .user-dropdown-item.logout {
-  color: #ff4242;
+  color: var(--danger-color);
+}
+
+.user-dropdown-item.logout:hover {
+  background-color: #fef2f2;
+}
+
+/* --- АДАПТИВНОСТЬ --- */
+@media (max-width: 992px) {
+  .top-nav { display: none; }
+}
+
+@media (max-width: 768px) {
+  .availability { display: none; }
+  .top-bar-content { justify-content: flex-end; }
+  .top-actions { width: 100%; justify-content: flex-end; }
+}
+
+@media (max-width: 480px) {
+  .login-text { display: none; }
+  .top-actions { gap: 12px; }
+  .lang-btn { font-size: 0; } /* Скрывает текст ENG, оставляя флаг и стрелку */
+  .lang-btn .arrow-down { font-size: 10px; }
+}
+
+/* --- ТЕМНАЯ ТЕМА (AUTO) --- */
+@media (prefers-color-scheme: dark) {
+  .lang-dropdown, .user-dropdown {
+    background: #111827;
+    border: 1px solid #374151;
+  }
+  .lang-option, .user-dropdown-item {
+    color: #e5e7eb;
+  }
+  .lang-option:hover, .user-dropdown-item:hover {
+    background-color: #1f2937;
+  }
+  .user-dropdown-header {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  .dropdown-user-info .user-name { color: #fff; }
+  .dropdown-divider { background: #374151; }
 }

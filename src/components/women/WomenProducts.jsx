@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import WomenFilters from "./WomenFilters";
 import heart from "../../assets/serdechko.png";
 import "./products.css";
+import Footer from "../footer/Footer";
 
 export default function WomenProducts() {
   const [products, setProducts] = useState([]);
@@ -118,6 +119,7 @@ export default function WomenProducts() {
   );
 
   return (
+    <div>
     <div className={`catalog-wrapper ${pageLoaded ? 'loaded' : ''}`}>
       {/* Анимация фона при загрузке */}
       <div className="page-load-overlay"></div>
@@ -144,9 +146,7 @@ export default function WomenProducts() {
                 transform: pageLoaded ? 'translateY(0)' : 'translateY(20px)'
               }}
               onClick={() => {
-                // Анимация перехода
-                const card = event.currentTarget;
-                card.style.transform = 'scale(0.95)';
+               
                 setTimeout(() => {
                   navigate(`/product/${item.id}`);
                 }, 200);
@@ -163,7 +163,7 @@ export default function WomenProducts() {
                 />
 
                 {item.hasDiscount && (
-                  <span className="sale-badge">-{item.discount}%</span>
+                  <span className="sale-badg">-{item.discount}%</span>
                 )}
 
                 <button
@@ -198,6 +198,7 @@ export default function WomenProducts() {
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }

@@ -12,7 +12,14 @@ import MenProductPage from "./components/men/MenProductPage";
 import KidsProductPage from "./components/kids/KidsProductPage";
 
 import Salemin from "./components/salemin/Salemin";
-// import Orders from "./components/orders/Orders"; // Закомментируйте если нет компонента
+import Checkout from "./components/korzina/Checkout";
+
+import SearchResults from "./components/header/SearchResults";
+import DeliveryPage from "./components/enjoy/DeliveryPage";
+import OrdersPage from "./components/header/OrdersPage";
+import BlogPage from "./components/Fashionblog/BlogPage";
+import ContactsPage from "./components/footer/ContactsPage";
+import FAQPage from "./components/footer/FAQPage"; // ДОБАВЛЕНО
 
 export const myRouter = createBrowserRouter([
   {
@@ -29,12 +36,17 @@ export const myRouter = createBrowserRouter([
 
       { path: "kids", element: <Kids /> },
       { path: "kids/product/:id", element: <KidsProductPage /> },
-      
-      // ✅ ДОБАВЛЯЕМ МАРШРУТ ДЛЯ РАСПРОДАЖИ
-      { path: "sale", element: <Salemin /> }
-      
-      // ❌ УБИРАЕМ Orders если компонента нет
-      // { path: "orders", element: <Orders /> }
+
+      { path: "sale", element: <Salemin /> },
+
+      { path: "checkout", element: <Checkout /> },
+
+      { path: "search", element: <SearchResults /> },
+      { path: "delivery", element: <DeliveryPage /> },
+      { path: "orders", element: <OrdersPage /> },
+      { path: "blog", element: <BlogPage /> },
+      { path: "contacts", element: <ContactsPage /> },
+      { path: "faq", element: <FAQPage /> } // ДОБАВЛЕНО
     ]
   }
 ]);

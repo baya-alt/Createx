@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
 import "./product.css";
-import { ProductDetails } from "./ProductDetails"; 
+import { ProductDetails } from "./ProductDetails";
 import Reviews from "./Rewiews";
 
 // Иконки
@@ -40,9 +40,9 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartItemsCount(cart.length);
-    
+
     const total = cart.reduce((sum, item) => {
-      const price = item.hasDiscount && item.discount 
+      const price = item.hasDiscount && item.discount
         ? item.price * (1 - item.discount / 100)
         : item.price;
       return sum + (price * item.quantity);
@@ -93,7 +93,7 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
         <div className="notification-progress">
           <div className="notification-progress-bar"></div>
         </div>
-        
+
         <div className="notification-header">
           <div className="notification-icon-circle">
             <span className="notification-icon">✓</span>
@@ -106,12 +106,12 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
             ×
           </button>
         </div>
-        
+
         <div className="notification-body">
           <div className="cart-product-preview">
             <div className="cart-product-image">
-              <img 
-                src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
+              <img
+                src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"}
                 alt={product.name}
               />
             </div>
@@ -120,8 +120,8 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
               <div className="cart-product-details">
                 {color && (
                   <span className="cart-product-color">
-                    <span 
-                      className="cart-color-dot" 
+                    <span
+                      className="cart-color-dot"
                       style={{ backgroundColor: getColorHex(color) }}
                     />
                     {color}
@@ -143,7 +143,7 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
               </div>
             </div>
           </div>
-          
+
           {cartItemsCount > 1 && (
             <div className="cart-summary">
               <div className="cart-count">
@@ -153,17 +153,17 @@ function CartAddedNotification({ isOpen, onClose, product, size, color, quantity
               <div className="cart-total-price">${cartTotal}</div>
             </div>
           )}
-          
+
           <div className="notification-actions">
             <button className="notification-btn continue" onClick={handleClose}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 8H14M14 8L9 3M14 8L9 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 8H14M14 8L9 3M14 8L9 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Continue Shopping
             </button>
             <button className="notification-btn view-cart" onClick={handleViewCart}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 2H3.33333L5.2 9.592C5.30213 10.0251 5.59046 10.396 5.996 10.618C6.40153 10.84 6.8896 10.8927 7.33333 10.764H12.6667C13.1104 10.8927 13.5985 10.84 14.004 10.618C14.4095 10.396 14.6979 10.0251 14.8 9.592L16 4.66667H4.66667M6.66667 14C6.66667 14.3682 6.36819 14.6667 6 14.6667C5.63181 14.6667 5.33333 14.3682 5.33333 14C5.33333 13.6318 5.63181 13.3333 6 13.3333C6.36819 13.3333 6.66667 13.6318 6.66667 14ZM13.3333 14C13.3333 14.3682 13.0349 14.6667 12.6667 14.6667C12.2985 14.6667 12 14.3682 12 14C12 13.6318 12.2985 13.3333 12.6667 13.3333C13.0349 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 2H3.33333L5.2 9.592C5.30213 10.0251 5.59046 10.396 5.996 10.618C6.40153 10.84 6.8896 10.8927 7.33333 10.764H12.6667C13.1104 10.8927 13.5985 10.84 14.004 10.618C14.4095 10.396 14.6979 10.0251 14.8 9.592L16 4.66667H4.66667M6.66667 14C6.66667 14.3682 6.36819 14.6667 6 14.6667C5.63181 14.6667 5.33333 14.3682 5.33333 14C5.33333 13.6318 5.63181 13.3333 6 13.3333C6.36819 13.3333 6.66667 13.6318 6.66667 14ZM13.3333 14C13.3333 14.3682 13.0349 14.6667 12.6667 14.6667C12.2985 14.6667 12 14.3682 12 14C12 13.6318 12.2985 13.3333 12.6667 13.3333C13.0349 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               View Cart
             </button>
@@ -217,27 +217,27 @@ function SizeWarningNotification({ isOpen, onClose, onSizeSelect }) {
         <div className="notification-progress">
           <div className="notification-progress-bar"></div>
         </div>
-        
+
         <div className="notification-header">
           <button className="notification-close-btn" onClick={handleClose}>
             ×
           </button>
-          
+
           <div className="notification-icon-circle">
             <span className="notification-icon">⚠️</span>
           </div>
-          
+
           <h3 className="notification-title">Select a Size</h3>
           <p className="notification-subtitle">
             Please choose your size before adding to cart
           </p>
         </div>
-        
+
         <div className="notification-body size-selector-body">
           <p style={{ marginBottom: '20px', color: '#64748b' }}>
             Available sizes for this product:
           </p>
-          
+
           <div className="size-options">
             {availableSizes.map((size) => (
               <button
@@ -249,22 +249,22 @@ function SizeWarningNotification({ isOpen, onClose, onSizeSelect }) {
               </button>
             ))}
           </div>
-          
+
           <div className="notification-actions">
             <button className="notification-btn cancel" onClick={handleClose}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Cancel
             </button>
-            <button 
-              className="notification-btn primary" 
+            <button
+              className="notification-btn primary"
               onClick={handleConfirm}
               disabled={!selectedSize}
               style={{ opacity: selectedSize ? 1 : 0.6 }}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M13.3333 4L5.99996 11.3333L2.66663 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13.3333 4L5.99996 11.3333L2.66663 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Confirm Size
             </button>
@@ -308,28 +308,28 @@ function FavoriteRemovedNotification({ isOpen, onClose, onUndo, product }) {
         <div className="notification-progress">
           <div className="notification-progress-bar"></div>
         </div>
-        
+
         <div className="notification-header">
           <button className="notification-close-btn" onClick={handleClose}>
             ×
           </button>
-          
+
           <div className="notification-icon-circle">
             <span className="notification-icon">💔</span>
           </div>
-          
+
           <h3 className="notification-title">Removed from Favorites</h3>
           <p className="notification-subtitle">
             Item has been removed from your wishlist
           </p>
         </div>
-        
+
         <div className="notification-body favorite-removed-body">
           {product && (
             <div className="favorite-product-info">
               <div className="favorite-product-image">
-                <img 
-                  src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
+                <img
+                  src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"}
                   alt={product.name}
                 />
               </div>
@@ -339,27 +339,27 @@ function FavoriteRemovedNotification({ isOpen, onClose, onUndo, product }) {
               </div>
             </div>
           )}
-          
+
           <div className="undo-action">
             <button className="undo-btn" onClick={handleUndo}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M1.33337 8.00008C1.33337 11.6761 4.32404 14.6667 8.00004 14.6667C11.676 14.6667 14.6667 11.6761 14.6667 8.00008C14.6667 4.32408 11.676 1.33341 8.00004 1.33341C5.06404 1.33341 2.57871 3.08941 1.69204 5.66675M1.33337 3.33341V5.66675H3.66671" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M1.33337 8.00008C1.33337 11.6761 4.32404 14.6667 8.00004 14.6667C11.676 14.6667 14.6667 11.6761 14.6667 8.00008C14.6667 4.32408 11.676 1.33341 8.00004 1.33341C5.06404 1.33341 2.57871 3.08941 1.69204 5.66675M1.33337 3.33341V5.66675H3.66671" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Undo
             </button>
           </div>
-          
+
           <div className="notification-actions" style={{ marginTop: '24px' }}>
             <button className="notification-btn cancel" onClick={handleClose}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 14.6667C11.6819 14.6667 14.6667 11.6819 14.6667 8C14.6667 4.3181 11.6819 1.33333 8 1.33333C4.3181 1.33333 1.33333 4.3181 1.33333 8C1.33333 11.6819 4.3181 14.6667 8 14.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M10 6L6 10M6 6L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 14.6667C11.6819 14.6667 14.6667 11.6819 14.6667 8C14.6667 4.3181 11.6819 1.33333 8 1.33333C4.3181 1.33333 1.33333 4.3181 1.33333 8C1.33333 11.6819 4.3181 14.6667 8 14.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 6L6 10M6 6L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Close
             </button>
             <button className="notification-btn primary" onClick={handleClose}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 2H3.33333L5.2 9.592C5.30213 10.0251 5.59046 10.396 5.996 10.618C6.40153 10.84 6.8896 10.8927 7.33333 10.764H12.6667C13.1104 10.8927 13.5985 10.84 14.004 10.618C14.4095 10.396 14.6979 10.0251 14.8 9.592L16 4.66667H4.66667M6.66667 14C6.66667 14.3682 6.36819 14.6667 6 14.6667C5.63181 14.6667 5.33333 14.3682 5.33333 14C5.33333 13.6318 5.63181 13.3333 6 13.3333C6.36819 13.3333 6.66667 13.6318 6.66667 14ZM13.3333 14C13.3333 14.3682 13.0349 14.6667 12.6667 14.6667C12.2985 14.6667 12 14.3682 12 14C12 13.6318 12.2985 13.3333 12.6667 13.3333C13.0349 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 2H3.33333L5.2 9.592C5.30213 10.0251 5.59046 10.396 5.996 10.618C6.40153 10.84 6.8896 10.8927 7.33333 10.764H12.6667C13.1104 10.8927 13.5985 10.84 14.004 10.618C14.4095 10.396 14.6979 10.0251 14.8 9.592L16 4.66667H4.66667M6.66667 14C6.66667 14.3682 6.36819 14.6667 6 14.6667C5.63181 14.6667 5.33333 14.3682 5.33333 14C5.33333 13.6318 5.63181 13.3333 6 13.3333C6.36819 13.3333 6.66667 13.6318 6.66667 14ZM13.3333 14C13.3333 14.3682 13.0349 14.6667 12.6667 14.6667C12.2985 14.6667 12 14.3682 12 14C12 13.6318 12.2985 13.3333 12.6667 13.3333C13.0349 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               View Similar Items
             </button>
@@ -398,28 +398,28 @@ function FavoriteAddedNotification({ isOpen, onClose, product }) {
         <div className="notification-progress">
           <div className="notification-progress-bar"></div>
         </div>
-        
+
         <div className="notification-header">
           <button className="notification-close-btn" onClick={handleClose}>
             ×
           </button>
-          
+
           <div className="notification-icon-circle">
             <span className="notification-icon">❤️</span>
           </div>
-          
+
           <h3 className="notification-title">Added to Favorites</h3>
           <p className="notification-subtitle">
             Item successfully added to your wishlist
           </p>
         </div>
-        
+
         <div className="notification-body">
           {product && (
             <div className="favorite-product-info">
               <div className="favorite-product-image">
-                <img 
-                  src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"} 
+                <img
+                  src={product.imageUrl || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop"}
                   alt={product.name}
                 />
               </div>
@@ -429,7 +429,7 @@ function FavoriteAddedNotification({ isOpen, onClose, product }) {
               </div>
             </div>
           )}
-          
+
           <div className="notification-actions">
             <button className="notification-btn cancel" onClick={handleClose}>
               Continue Shopping
@@ -448,9 +448,9 @@ function FavoriteAddedNotification({ isOpen, onClose, product }) {
 
 const addToCart = (product, size, color, quantity = 1, imageUrl) => {
   const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-  
+
   const cartItemId = Date.now();
-  
+
   const item = {
     id: cartItemId,
     productId: product.id,
@@ -466,28 +466,28 @@ const addToCart = (product, size, color, quantity = 1, imageUrl) => {
     variant: product.variant || product.kategory || "",
     timestamp: Date.now()
   };
-  
-  const existingItemIndex = existingCart.findIndex(cartItem => 
-    cartItem.productId === item.productId && 
-    cartItem.size === item.size && 
+
+  const existingItemIndex = existingCart.findIndex(cartItem =>
+    cartItem.productId === item.productId &&
+    cartItem.size === item.size &&
     cartItem.color === item.color
   );
-  
+
   if (existingItemIndex !== -1) {
     existingCart[existingItemIndex].quantity += quantity;
   } else {
     existingCart.push(item);
   }
-  
+
   localStorage.setItem('cart', JSON.stringify(existingCart));
   window.dispatchEvent(new Event('cartUpdated'));
-  
+
   return item;
 };
 
 const addToFavorites = (product, color, imageUrl) => {
   const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-  
+
   const favoriteItem = {
     id: Date.now(),
     productId: product.id,
@@ -498,18 +498,18 @@ const addToFavorites = (product, color, imageUrl) => {
     timestamp: Date.now()
   };
 
-  const isAlreadyFavorite = favorites.some(fav => 
-    fav.productId === favoriteItem.productId && 
+  const isAlreadyFavorite = favorites.some(fav =>
+    fav.productId === favoriteItem.productId &&
     fav.color === favoriteItem.color
   );
-  
+
   if (!isAlreadyFavorite) {
     favorites.push(favoriteItem);
     localStorage.setItem('favorites', JSON.stringify(favorites));
     window.dispatchEvent(new Event('favoritesUpdated'));
     return { success: true, item: favoriteItem };
   } else {
-    const updatedFavorites = favorites.filter(fav => 
+    const updatedFavorites = favorites.filter(fav =>
       !(fav.productId === favoriteItem.productId && fav.color === favoriteItem.color)
     );
     localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
@@ -539,7 +539,7 @@ function PaymentModalComponent({ paymentType, product, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setProcessing(true);
-    
+
     setTimeout(() => {
       setProcessing(false);
       setSuccess(true);
@@ -552,11 +552,11 @@ function PaymentModalComponent({ paymentType, product, onClose }) {
     const matches = v.match(/\d{4,16}/g);
     const match = matches && matches[0] || '';
     const parts = [];
-    
+
     for (let i = 0, len = match.length; i < len; i += 4) {
       parts.push(match.substring(i, i + 4));
     }
-    
+
     return parts.length ? parts.join(' ') : value;
   };
 
@@ -761,7 +761,7 @@ function PaymentModalComponent({ paymentType, product, onClose }) {
 function SocialShareModalComponent({ socialType, product, onClose }) {
   const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState(`Check out this ${product.name}!`);
-  
+
   const shareUrl = window.location.href;
   const productImage = product.avatar || product.avatarred;
 
@@ -871,7 +871,7 @@ export default function ProductPage() {
   const [selectedColor, setSelectedColor] = useState("");
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState([]);
-  
+
   // Состояния для модальных окон
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -883,7 +883,7 @@ export default function ProductPage() {
   const [showSizeWarning, setShowSizeWarning] = useState(false);
   const [showFavoriteAdded, setShowFavoriteAdded] = useState(false);
   const [showFavoriteRemoved, setShowFavoriteRemoved] = useState(false);
-  
+
   // Данные для уведомлений
   const [cartNotificationData, setCartNotificationData] = useState(null);
   const [favoriteNotificationData, setFavoriteNotificationData] = useState(null);
@@ -905,11 +905,11 @@ export default function ProductPage() {
           basePrice,
           price,
           discount,
-          hasDiscount: !!data.sale 
+          hasDiscount: !!data.sale
         };
-        
+
         setProduct(productData);
-        
+
         // Инициализируем изображения сразу после загрузки продукта
         const productImages = [
           productData.avatarred,
@@ -919,7 +919,7 @@ export default function ProductPage() {
           productData.avatarred,
           productData.avatar
         ].filter(Boolean);
-        
+
         setImages(productImages);
         setLoading(false);
       })
@@ -931,7 +931,7 @@ export default function ProductPage() {
 
   // Функция для получения цвета по индексу
   const getColorFromIndex = (idx) => {
-    switch(idx) {
+    switch (idx) {
       case 0: return "Black";
       case 1: return "White";
       case 2: return "Blue";
@@ -946,9 +946,9 @@ export default function ProductPage() {
       const realIndex = index === 0
         ? images.length - 3
         : index === images.length - 1
-        ? 0
-        : index - 1;
-      
+          ? 0
+          : index - 1;
+
       const color = getColorFromIndex(realIndex);
       setSelectedColor(color);
     }
@@ -974,7 +974,7 @@ export default function ProductPage() {
   /* ================= HANDLERS ================= */
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     if (!size) {
       setShowSizeWarning(true);
       return;
@@ -983,14 +983,14 @@ export default function ProductPage() {
     const realIndex = index === 0
       ? images.length - 3
       : index === images.length - 1
-      ? 0
-      : index - 1;
-      
+        ? 0
+        : index - 1;
+
     const color = getColorFromIndex(realIndex);
     const imageUrl = images[realIndex] || product.avatarred;
-    
+
     const addedItem = addToCart(product, size, color, quantity, imageUrl);
-    
+
     // Показываем уведомление о добавлении в корзину
     setCartNotificationData({
       product: {
@@ -1006,20 +1006,20 @@ export default function ProductPage() {
 
   const handleAddToFavorites = () => {
     if (!product) return;
-    
+
     const realIndex = index === 0
       ? images.length - 3
       : index === images.length - 1
-      ? 0
-      : index - 1;
-      
+        ? 0
+        : index - 1;
+
     const color = getColorFromIndex(realIndex);
     const imageUrl = images[realIndex] || product.avatarred;
-    
+
     const result = addToFavorites(product, color, imageUrl);
-    
+
     setLastFavoriteItem(result.item);
-    
+
     if (result.success) {
       // Показываем уведомление о добавлении в избранное
       setFavoriteNotificationData({
@@ -1067,25 +1067,37 @@ export default function ProductPage() {
   // Обработчик выбора размера из уведомления
   const handleSizeSelectFromNotification = (selectedSize) => {
     setSize(selectedSize);
-    
+
     // Автоматически добавляем в корзину после выбора размера
     setTimeout(() => {
       const realIndex = index === 0
         ? images.length - 3
         : index === images.length - 1
-        ? 0
-        : index - 1;
-        
+          ? 0
+          : index - 1;
+
       const color = getColorFromIndex(realIndex);
-      const imageUrl = images[realIndex] || product.avatarred;
-      
+      const imageUrl = getColorFromIndex(realIndex)
+
       const addedItem = addToCart(product, selectedSize, color, quantity, imageUrl);
-      
+
+      const colorImages = {
+        "Black": avatar,
+        "White": avatarwhite,
+        "Blue": avatarblue,
+        "Red": avatarred
+      };
+
       // Показываем уведомление о добавлении в корзину
       setCartNotificationData({
         product: {
           ...product,
-          imageUrl: imageUrl
+          imageUrl: [
+            avatar,
+            avatarred,
+            avatarblue,
+            avatarwhite
+          ]
         },
         size: selectedSize,
         color: color,
@@ -1103,7 +1115,7 @@ export default function ProductPage() {
       favorites.push(lastFavoriteItem);
       localStorage.setItem('favorites', JSON.stringify(favorites));
       window.dispatchEvent(new Event('favoritesUpdated'));
-      
+
       // Показываем уведомление о добавлении в избранное
       setFavoriteNotificationData({
         product: {
@@ -1135,8 +1147,8 @@ export default function ProductPage() {
     ? index === 0
       ? images.length - 3
       : index === images.length - 1
-      ? 0
-      : index - 1
+        ? 0
+        : index - 1
     : 0;
 
   return (
@@ -1171,7 +1183,7 @@ export default function ProductPage() {
 
       {/* TAB CONTENT */}
       <div className="tab-content">
-        
+
         {/* 1. GENERAL INFO */}
         {activeTab === "info" && (
           <div className="product-page">
@@ -1190,7 +1202,7 @@ export default function ProductPage() {
                     >
                       {images.map((img, i) => (
                         <div className="slide" key={i}>
-                          <img src={img} alt={`${product.name} - view ${i+1}`} />
+                          <img src={img} alt={`${product.name} - view ${i + 1}`} />
                         </div>
                       ))}
                     </div>
@@ -1205,7 +1217,7 @@ export default function ProductPage() {
                         src={img}
                         className={realIndex === i ? "active" : ""}
                         onClick={() => goToSlide(i + 1)}
-                        alt={`Thumbnail ${i+1}`}
+                        alt={`Thumbnail ${i + 1}`}
                       />
                     ))}
                   </div>
@@ -1230,24 +1242,24 @@ export default function ProductPage() {
               <div className="block">
                 <label>Color</label>
                 <div className="colors">
-                  <span 
-                    className={`color black ${realIndex === 0 ? "active" : ""}`} 
-                    onClick={() => handleColorClick("Black", 1)} 
+                  <span
+                    className={`color black ${realIndex === 0 ? "active" : ""}`}
+                    onClick={() => handleColorClick("Black", 1)}
                     title="Black color"
                   />
-                  <span 
-                    className={`color white ${realIndex === 1 ? "active" : ""}`} 
-                    onClick={() => handleColorClick("White", 2)} 
+                  <span
+                    className={`color white ${realIndex === 1 ? "active" : ""}`}
+                    onClick={() => handleColorClick("White", 2)}
                     title="White color"
                   />
-                  <span 
-                    className={`color blue ${realIndex === 2 ? "active" : ""}`} 
-                    onClick={() => handleColorClick("Blue", 3)} 
+                  <span
+                    className={`color blue ${realIndex === 2 ? "active" : ""}`}
+                    onClick={() => handleColorClick("Blue", 3)}
                     title="Blue color"
                   />
-                  <span 
-                    className={`color red ${realIndex === 3 ? "active" : ""}`} 
-                    onClick={() => handleColorClick("Red", 4)} 
+                  <span
+                    className={`color red ${realIndex === 3 ? "active" : ""}`}
+                    onClick={() => handleColorClick("Red", 4)}
                     title="Red color"
                   />
                 </div>
@@ -1258,8 +1270,8 @@ export default function ProductPage() {
 
               <div className="block">
                 <label>Size</label>
-                <select 
-                  value={size} 
+                <select
+                  value={size}
                   onChange={e => setSize(e.target.value)}
                   className="size-select"
                 >
@@ -1277,17 +1289,17 @@ export default function ProductPage() {
               <div className="block">
                 <label>Quantity</label>
                 <div className="quantity-selector">
-                  <button 
-                    className="qty-btn minus" 
-                    onClick={() => handleQuantityChange(-1)} 
+                  <button
+                    className="qty-btn minus"
+                    onClick={() => handleQuantityChange(-1)}
                     disabled={quantity <= 1}
                   >
                     −
                   </button>
                   <span className="qty-display">{quantity}</span>
-                  <button 
-                    className="qty-btn plus" 
-                    onClick={() => handleQuantityChange(1)} 
+                  <button
+                    className="qty-btn plus"
+                    onClick={() => handleQuantityChange(1)}
                     disabled={quantity >= 10}
                   >
                     +
@@ -1315,20 +1327,20 @@ export default function ProductPage() {
 
               <div className="share">
                 <span>Share:</span>
-                <button 
-                  className="social-btn" 
+                <button
+                  className="social-btn"
                   onClick={() => handleSocialClick("facebook")}
                 >
                   <img src={facebook} alt="Facebook" />
                 </button>
-                <button 
-                  className="social-btn" 
+                <button
+                  className="social-btn"
                   onClick={() => handleSocialClick("twitter")}
                 >
                   <img src={twitter} alt="Twitter" />
                 </button>
-                <button 
-                  className="social-btn" 
+                <button
+                  className="social-btn"
                   onClick={() => handleSocialClick("pinterest")}
                 >
                   <img src={pinterest} alt="Pinterest" />
@@ -1337,20 +1349,20 @@ export default function ProductPage() {
 
               <div className="payments">
                 <span>Pay with:</span>
-                <button 
-                  className="payment-btn" 
+                <button
+                  className="payment-btn"
                   onClick={() => handlePaymentClick("visa")}
                 >
                   <img src={visa} alt="Visa" />
                 </button>
-                <button 
-                  className="payment-btn" 
+                <button
+                  className="payment-btn"
                   onClick={() => handlePaymentClick("mastercard")}
                 >
                   <img src={mastercard} alt="Mastercard" />
                 </button>
-                <button 
-                  className="payment-btn" 
+                <button
+                  className="payment-btn"
                   onClick={() => handlePaymentClick("paypal")}
                 >
                   <img src={paypal} alt="PayPal" />
@@ -1367,7 +1379,7 @@ export default function ProductPage() {
 
         {/* 3. REVIEWS */}
         {activeTab === "reviews" && (
-          <Reviews product={product} /> 
+          <Reviews product={product} />
         )}
       </div>
 

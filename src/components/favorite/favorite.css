@@ -1,348 +1,733 @@
-/* favorite.css */
+/* favorite.css - Красивый дизайн как у корзины с оригинальной зеленой темой */
 
 .favorite-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(30, 33, 44, 0.55);
-    z-index: 100;
-    animation: fadeIn 0.2s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: overlayFadeIn 0.3s ease;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+@keyframes overlayFadeIn {
+  from { 
+    opacity: 0; 
+    backdrop-filter: blur(0); 
+  }
+  to { 
+    opacity: 1; 
+    backdrop-filter: blur(4px); 
+  }
 }
 
 .favorite-drawer {
-    position: fixed;
-    top: 0;
-    right: -380px;
-    width: 360px;
-    height: 100vh;
-    background: #fff;
-    z-index: 101;
-    transition: right 0.35s ease;
-    display: flex;
-    flex-direction: column;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 400px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .favorite-drawer.open {
-    right: 0;
+  right: 0;
 }
 
+/* Шапка избранного - зеленая как в корзине */
 .favorite-header {
-    padding: 20px;
-    border-bottom: 1px solid #e5e8ed;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e5e8ed;
+  background: #17696a; /* Основной зеленый цвет */
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.favorite-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
 }
 
 .favorite-header h3 {
-    font-size: 17px;
-    font-weight: 600;
-    color: #1e212c;
-    margin: 0;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-header h3::before {
+  content: '❤️';
+  font-size: 24px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+  animation: heartFloat 3s ease-in-out infinite;
+}
+
+@keyframes heartFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 .favorite-header button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #787a80;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s;
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 2;
+  color: white;
+  font-size: 22px;
+  backdrop-filter: blur(10px);
+  padding: 0;
 }
 
 .favorite-header button:hover {
-    background: #f4f5f7;
-    color: #1e212c;
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
 }
 
+/* Счетчик избранного */
+.favorite-count {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 500;
+  margin-left: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Список избранного */
 .favorite-items {
-    padding: 20px;
-    overflow-y: auto;
-    flex: 1;
-    background: #fafafa;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background: #f9fafb;
+  scroll-behavior: smooth;
 }
 
 .favorite-loading {
-    text-align: center;
-    padding: 40px;
-    color: #787a80;
+  text-align: center;
+  padding: 80px 28px;
+  color: #787a80;
+  font-size: 14px;
 }
 
 .favorite-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 28px;
+  text-align: center;
+  height: 100%;
 }
 
 .empty-heart {
-    font-size: 48px;
-    margin-bottom: 20px;
-    opacity: 0.3;
+  font-size: 70px;
+  margin-bottom: 24px;
+  opacity: 0.15;
+  color: #17696a;
+  animation: heartPulse 2s ease-in-out infinite;
+}
+
+@keyframes heartPulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.25; }
 }
 
 .favorite-empty {
-    text-align: center;
-    color: #787a80;
-    margin: 0 0 12px 0;
-    font-size: 16px;
-    font-weight: 500;
+  color: #1e212c;
+  font-size: 17px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
 .empty-hint {
-    color: #9a9ca5;
-    font-size: 14px;
-    margin: 0 0 24px 0;
-    line-height: 1.4;
+  color: #9a9ca5;
+  font-size: 14px;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+  max-width: 280px;
 }
 
 .continue-shopping {
-    background: #17696a;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: background 0.2s;
+  background: #17696a;
+  color: white;
+  border: none;
+  padding: 14px 36px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(23, 105, 106, 0.25);
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.continue-shopping::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .continue-shopping:hover {
-    background: #145c5c;
+  background: #145c5d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(23, 105, 106, 0.35);
 }
 
-/* Favorite Item */
+.continue-shopping:hover::before {
+  left: 100%;
+}
+
+/* Элемент избранного - улучшенный дизайн */
 .favorite-item {
-    display: flex;
-    gap: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    border: 1px solid #e5e8ed;
-    transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  padding: 20px 24px;
+  background: white;
+  border-bottom: 1px solid #e5e8ed;
+  position: relative;
+  gap: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideIn 0.3s ease forwards;
+  opacity: 0;
+  transform: translateX(10px);
 }
 
 .favorite-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.favorite-item:last-child {
+  border-bottom: none;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.favorite-item:nth-child(1) { animation-delay: 0.1s; }
+.favorite-item:nth-child(2) { animation-delay: 0.2s; }
+.favorite-item:nth-child(3) { animation-delay: 0.3s; }
+.favorite-item:nth-child(4) { animation-delay: 0.4s; }
+
+/* Изображение товара с эффектом */
 .favorite-thumb {
-    width: 80px;
-    height: 80px;
-    flex-shrink: 0;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #f4f5f7;
-    border: 1px solid #e5e8ed;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f4f5f7;
+  border: 1px solid #e5e8ed;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.favorite-item:hover .favorite-thumb {
+  transform: scale(1.05);
 }
 
 .favorite-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.favorite-item:hover .favorite-thumb img {
+  transform: scale(1.1);
 }
 
 .favorite-thumb-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: #787a80;
-    font-size: 12px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f5f5 0%, #d1e8e8 100%);
+  color: #17696a;
+  font-size: 24px;
 }
 
+/* Информация о товаре */
 .favorite-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .favorite-info h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e212c;
-    margin: 0;
-    line-height: 1.3;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    /* -webkit-line-clamp: 2; */
-    -webkit-box-orient: vertical;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e212c;
+  line-height: 1.4;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  /* -webkit-line-clamp: 2; */
+  -webkit-box-orient: vertical;
 }
 
+/* Детали товара */
 .favorite-color {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #787a80;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #787a80;
 }
 
 .color-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    border: 1px solid #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
 }
+
+.color-dot:hover {
+  transform: scale(1.2);
+}
+
+/* Цветовые кружки */
+.color-dot.black { background: #000000; }
+.color-dot.white { 
+  background: #ffffff;
+  border: 1px solid #ddd;
+}
+.color-dot.blue { background: #3b82f6; }
+.color-dot.red { background: #ef4444; }
+.color-dot.yellow { background: #f59e0b; }
+.color-dot.green { background: #10b981; }
+.color-dot.pink { background: #ec4899; }
+.color-dot.gray { background: #6b7280; }
+.color-dot.purple { background: #8b5cf6; }
 
 .favorite-price {
-    font-weight: 700;
-    color: #1e212c;
-    font-size: 16px;
-    margin: 2px 0;
+  font-weight: 700;
+  color: #1e212c;
+  font-size: 16px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+.old-price {
+  font-size: 13px;
+  color: #9a9ca5;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+/* Кнопки действий */
 .favorite-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .add-to-cart-btn {
-    background: #17696a;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: background 0.2s;
-    flex: 1;
+  flex: 2;
+  background: #17696a;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 2px 8px rgba(23, 105, 106, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.add-to-cart-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .add-to-cart-btn:hover {
-    background: #145c5c;
+  background: #145c5d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 105, 106, 0.3);
+}
+
+.add-to-cart-btn:hover::before {
+  left: 100%;
+}
+
+.add-to-cart-btn::after {
+  content: '🛒';
+  font-size: 14px;
 }
 
 .favorite-remove {
-    background: #fff;
-    border: 1px solid #e5e8ed;
-    color: #787a80;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  flex: 1;
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #424551;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.favorite-remove::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(254, 202, 202, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .favorite-remove:hover {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #e53935;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #ef4444;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
 }
 
-/* Footer */
+.favorite-remove:hover::before {
+  left: 100%;
+}
+
+.favorite-remove::after {
+  content: '🗑️';
+  font-size: 14px;
+}
+
+/* Футер избранного */
 .favorite-footer {
-    padding: 20px;
-    border-top: 1px solid #e5e8ed;
-    background: #fff;
+  padding: 24px;
+  border-top: 1px solid #e5e8ed;
+  background: white;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .favorite-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e8ed;
 }
 
 .favorite-total span {
-    color: #787a80;
+  font-size: 16px;
+  font-weight: 500;
+  color: #424551;
 }
 
 .favorite-total strong {
-    font-size: 18px;
-    color: #1e212c;
+  font-size: 22px;
+  font-weight: 700;
+  color: #17696a;
+}
+
+.favorite-hint {
+  font-size: 13px;
+  color: #9a9ca5;
+  text-align: center;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
 }
 
 .view-all-btn {
-    width: 100%;
-    background: #fff;
-    border: 2px solid #17696a;
-    color: #17696a;
-    padding: 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s;
+  width: 100%;
+  background: #17696a;
+  color: white;
+  border: none;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 16px;
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 20px rgba(23, 105, 106, 0.25);
+  position: relative;
+  overflow: hidden;
 }
 
-.view-all-btn:hover {
-    background: #17696a;
-    color: white;
+.view-all-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
-/* Scrollbar */
-.favorite-items::-webkit-scrollbar {
-    width: 4px;
+.view-all-btn:hover:not(:disabled) {
+  background: #145c5d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(23, 105, 106, 0.35);
 }
 
-.favorite-items::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 2px;
+.view-all-btn:hover::before {
+  left: 100%;
 }
 
-.favorite-items::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 2px;
+.view-all-btn:disabled {
+  background: #e5e8ed;
+  color: #9a9ca5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.favorite-items::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+.favorite-footer .continue-shopping {
+  width: 100%;
+  background: white;
+  border: 2px solid #17696a;
+  color: #17696a;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.favorite-footer .continue-shopping::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(23, 105, 106, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.favorite-footer .continue-shopping:hover {
+  background: #17696a;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 105, 106, 0.2);
+}
+
+.favorite-footer .continue-shopping:hover::before {
+  left: 100%;
+}
+
+/* Бейджи */
+.discount-badge {
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.new-badge {
+  background: #10b981;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
 }
 
 /* Адаптивность */
 @media (max-width: 480px) {
-    .favorite-drawer {
-        width: 100%;
-        right: -100%;
-    }
+  .favorite-drawer {
+    width: 100%;
+    right: -100%;
+  }
+  
+  .favorite-header {
+    padding: 20px 24px;
+  }
+  
+  .favorite-item {
+    padding: 16px 20px;
+    gap: 12px;
+  }
+  
+  .favorite-thumb {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .favorite-footer {
+    padding: 20px;
+  }
+  
+  .favorite-total strong {
+    font-size: 20px;
+  }
+}
 
-    .favorite-item {
-        padding: 12px;
-        gap: 10px;
-    }
+/* Полоса прокрутки */
+.favorite-items::-webkit-scrollbar {
+  width: 6px;
+}
 
-    .favorite-thumb {
-        width: 70px;
-        height: 70px;
-    }
+.favorite-items::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.favorite-items::-webkit-scrollbar-thumb {
+  background: #17696a;
+  border-radius: 3px;
+}
+
+.favorite-items::-webkit-scrollbar-thumb:hover {
+  background: #145c5d;
+}
+
+/* Эффект при добавлении в корзину */
+@keyframes cartAdd {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.add-to-cart-btn:active {
+  animation: cartAdd 0.3s ease;
+}
+
+/* Эффект при удалении */
+@keyframes removeItem {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.favorite-item.removing {
+  animation: removeItem 0.3s ease forwards;
+}
+
+/* Анимация сердцебиения для заголовка */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  5% { transform: scale(1.1); }
+  10% { transform: scale(1); }
+  15% { transform: scale(1.1); }
+  20% { transform: scale(1); }
+}
+
+.heart-beat {
+  animation: heartbeat 5s ease-in-out infinite;
+}
+
+/* Эффект блеска для кнопок */
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.shine-effect {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shine 2s infinite;
+}
+
+/* Плавное появление элементов */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.favorite-empty-state,
+.favorite-loading {
+  animation: fadeInUp 0.5s ease;
 }
