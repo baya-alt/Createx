@@ -50,7 +50,7 @@ const CategoryBanners = () => {
             <Insta/>
             <Fashionblog/>
             <SubscribeForm/>
-            <Footer/>
+
 
         </section>
     );

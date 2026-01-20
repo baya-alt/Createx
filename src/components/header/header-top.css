@@ -8,6 +8,8 @@
   --dropdown-bg: #ffffff;
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --mobile-menu-bg: #ffffff;
+  --mobile-overlay-bg: rgba(0, 0, 0, 0.5);
 }
 
 /* --- КОНТЕЙНЕР --- */
@@ -37,6 +39,13 @@
   text-decoration: none;
   font-size: 13px;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.availability .phone-icon {
+  stroke: var(--text-muted);
 }
 
 .availability strong {
@@ -46,6 +55,10 @@
 
 .availability:hover {
   color: var(--text-bright);
+}
+
+.availability:hover .phone-icon {
+  stroke: var(--text-bright);
 }
 
 /* --- ЦЕНТРАЛЬНАЯ НАВИГАЦИЯ --- */
@@ -60,16 +73,29 @@
   cursor: pointer;
   padding: 0;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-icon {
+  stroke: var(--text-muted);
+  transition: var(--transition);
 }
 
 .nav-link-text {
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
+  transition: var(--transition);
 }
 
 .nav-link:hover .nav-link-text {
   color: var(--text-bright);
+}
+
+.nav-link:hover .nav-icon {
+  stroke: var(--text-bright);
 }
 
 /* --- ПРАВАЯ ЧАСТЬ (Действия) --- */
@@ -80,6 +106,10 @@
 }
 
 /* Кнопки переключателей */
+.language-selector {
+  position: relative;
+}
+
 .lang-btn, .login-btn {
   background: none;
   border: none;
@@ -91,11 +121,15 @@
   font-size: 13px;
   font-weight: 600;
   transition: var(--transition);
-  z-index: 9999999999999;
+  padding: 4px 0;
 }
 
 .lang-btn:hover, .login-btn:hover {
   opacity: 0.8;
+}
+
+.lang-btn svg, .login-btn svg {
+  stroke: var(--text-bright);
 }
 
 .flag-icon {
@@ -108,6 +142,11 @@
 .arrow-down {
   font-size: 10px;
   transition: var(--transition);
+  stroke-width: 3;
+}
+
+.arrow-down.rotate {
+  transform: rotate(180deg);
 }
 
 /* --- ВЫПАДАЮЩИЕ МЕНЮ (DROPDOWNS) --- */
@@ -151,6 +190,10 @@
   color: var(--accent-color);
 }
 
+.lang-option:hover svg, .user-dropdown-item:hover svg {
+  stroke: var(--accent-color);
+}
+
 /* --- АВАТАРЫ (Header & Dropdown) --- */
 .header-profile-avatar {
   width: 24px;
@@ -164,6 +207,7 @@
   color: white;
   font-size: 10px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .header-profile-photo, .dropdown-profile-photo {
@@ -224,22 +268,346 @@
   background-color: #fef2f2;
 }
 
+.user-dropdown-item.logout svg {
+  stroke: var(--danger-color);
+}
+
+/* --- МОБИЛЬНОЕ МЕНЮ --- */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-bright);
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 12px;
+}
+
+.mobile-menu-toggle svg {
+  stroke: var(--text-bright);
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--mobile-overlay-bg);
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition);
+}
+
+.mobile-menu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 90vw;
+  background: var(--mobile-menu-bg);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.mobile-menu-overlay.active .mobile-menu {
+  transform: translateX(0);
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--top-bar-bg);
+  color: var(--text-bright);
+}
+
+.mobile-menu-close {
+  background: none;
+  border: none;
+  color: var(--text-bright);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.mobile-menu-close svg {
+  stroke: var(--text-bright);
+}
+
+.mobile-menu-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.mobile-menu-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.mobile-contact-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.mobile-phone-link {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-phone-link svg {
+  stroke: var(--accent-color);
+}
+
+.mobile-contact-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 16px 0;
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 16px;
+  color: #1e293b;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.mobile-nav-item:hover {
+  background: #f1f5f9;
+  color: var(--accent-color);
+}
+
+.mobile-nav-item svg {
+  stroke: #64748b;
+  transition: var(--transition);
+}
+
+.mobile-nav-item:hover svg {
+  stroke: var(--accent-color);
+}
+
+.mobile-user-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.mobile-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mobile-profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.mobile-user-email {
+  font-size: 12px;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-user-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: #1e293b;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.mobile-user-action:hover {
+  background: #f1f5f9;
+  color: var(--accent-color);
+}
+
+.mobile-user-action svg {
+  stroke: #64748b;
+  transition: var(--transition);
+}
+
+.mobile-user-action:hover svg {
+  stroke: var(--accent-color);
+}
+
+.mobile-user-action.logout {
+  color: var(--danger-color);
+}
+
+.mobile-user-action.logout:hover {
+  background: #fef2f2;
+}
+
+.mobile-user-action.logout svg {
+  stroke: var(--danger-color);
+}
+
+.mobile-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.mobile-login-btn:hover {
+  background: #0d5959;
+  transform: translateY(-1px);
+}
+
 /* --- АДАПТИВНОСТЬ --- */
+@media (max-width: 1100px) {
+  .top-nav {
+    gap: 20px;
+  }
+}
+
 @media (max-width: 992px) {
-  .top-nav { display: none; }
+  .top-nav {
+    display: none;
+  }
+  
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .availability {
+    font-size: 12px;
+  }
+  
+  .availability .phone-icon {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
-  .availability { display: none; }
-  .top-bar-content { justify-content: flex-end; }
-  .top-actions { width: 100%; justify-content: flex-end; }
+  .availability strong {
+    display: none;
+  }
+  
+  .availability::after {
+    content: "24/7";
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+  
+  .availability:hover::after {
+    color: var(--text-bright);
+  }
+  
+  .top-actions {
+    gap: 16px;
+  }
+  
+  .lang-btn span, .login-text {
+    display: none;
+  }
+  
+  .lang-btn, .login-btn {
+    gap: 4px;
+  }
 }
 
 @media (max-width: 480px) {
-  .login-text { display: none; }
-  .top-actions { gap: 12px; }
-  .lang-btn { font-size: 0; } /* Скрывает текст ENG, оставляя флаг и стрелку */
-  .lang-btn .arrow-down { font-size: 10px; }
+  .top-bar-content {
+    padding: 0 12px;
+  }
+  
+  .top-actions {
+    gap: 12px;
+  }
+  
+  .availability {
+    font-size: 11px;
+  }
 }
 
 /* --- ТЕМНАЯ ТЕМА (AUTO) --- */
@@ -248,16 +616,50 @@
     background: #111827;
     border: 1px solid #374151;
   }
+  
   .lang-option, .user-dropdown-item {
     color: #e5e7eb;
   }
+  
   .lang-option:hover, .user-dropdown-item:hover {
     background-color: #1f2937;
   }
+  
   .user-dropdown-header {
     background: #1f2937;
     border-color: #374151;
   }
-  .dropdown-user-info .user-name { color: #fff; }
-  .dropdown-divider { background: #374151; }
+  
+  .dropdown-user-info .user-name { 
+    color: #fff; 
+  }
+  
+  .dropdown-divider { 
+    background: #374151; 
+  }
+  
+  .mobile-menu {
+    background: #111827;
+    color: #e5e7eb;
+  }
+  
+  .mobile-phone-link {
+    color: #e5e7eb;
+  }
+  
+  .mobile-nav-item {
+    color: #e5e7eb;
+  }
+  
+  .mobile-nav-item:hover {
+    background: #1f2937;
+  }
+  
+  .mobile-user-info {
+    background: #1f2937;
+  }
+  
+  .mobile-user-name {
+    color: #e5e7eb;
+  }
 }

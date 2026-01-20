@@ -692,10 +692,10 @@ function Checkout() {
                       value={formData.country}
                       onChange={handleInputChange}
                     >
-                      <option value="United States">United States</option>
-                      <option value="Canada">Canada</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="Australia">Australia</option>
+                      <option value="United States">Kyrgyzstan</option>
+                      <option value="Canada">Russia</option>
+                      <option value="United Kingdom">Kazakstan</option>
+                      <option value="Australia">Uzbekstan</option>
                     </select>
                   </div>
                 </div>

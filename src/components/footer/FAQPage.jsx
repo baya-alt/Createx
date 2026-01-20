@@ -6,28 +6,28 @@ export default function FAQPage() {
 
   const faqs = [
     {
-      question: "Как оформить заказ?",
-      answer: "Выберите товары, добавьте их в корзину, перейдите в корзину и нажмите 'Оформить заказ'. Заполните данные доставки и выберите способ оплаты."
+      question: "How do I place an order?",
+      answer: "Select the products, add them to your cart, go to the cart and click 'Checkout'. Fill in the delivery details and choose a payment method."
     },
     {
-      question: "Какие способы доставки доступны?",
-      answer: "Мы предлагаем курьерскую доставку по городу, доставку в пункты выдачи и почтовую доставку по всей стране."
+      question: "What delivery methods are available?",
+      answer: "We offer courier delivery within the city, delivery to pickup points, and postal delivery throughout the country."
     },
     {
-      question: "Сколько стоит доставка?",
-      answer: "Доставка бесплатна при заказе от $50. При меньшей сумме стоимость доставки рассчитывается индивидуально в зависимости от адреса."
+      question: "How much is delivery?",
+      answer: "Delivery is free for orders over $50. For smaller amounts, the delivery cost is calculated individually based on the address."
     },
     {
-      question: "Как отследить заказ?",
-      answer: "После отправки заказа вы получите трек-номер на email. Используйте его для отслеживания на сайте транспортной компании."
+      question: "How can I track my order?",
+      answer: "After your order is shipped, you will receive a tracking number via email. Use it to track your order on the carrier's website."
     },
     {
-      question: "Как вернуть товар?",
-      answer: "Товар можно вернуть в течение 14 дней с момента получения. Товар должен быть в оригинальной упаковке с бирками."
+      question: "How do I return an item?",
+      answer: "Items can be returned within 14 days of receipt. The item must be in its original packaging with tags attached."
     },
     {
-      question: "Какие способы оплаты принимаются?",
-      answer: "Мы принимаем банковские карты (Visa, Mastercard), Apple Pay, Google Pay и наличные при получении."
+      question: "What payment methods do you accept?",
+      answer: "We accept bank cards (Visa, Mastercard), Apple Pay, Google Pay, and cash on delivery."
     }
   ];
 
@@ -38,8 +38,8 @@ export default function FAQPage() {
   return (
     <div className="faq-container">
       <div className="faq-header">
-        <h1>Часто задаваемые вопросы</h1>
-        <p>Здесь вы найдете ответы на самые популярные вопросы о нашем магазине</p>
+        <h1>Frequently Asked Questions</h1>
+        <p>Here you'll find answers to the most common questions about our store</p>
       </div>
 
       <div className="faq-list">
@@ -66,14 +66,14 @@ export default function FAQPage() {
       </div>
 
       <div className="faq-contact">
-        <h3>Не нашли ответ на свой вопрос?</h3>
-        <p>Свяжитесь с нашей службой поддержки:</p>
+        <h3>Didn't find the answer to your question?</h3>
+        <p>Contact our support team:</p>
         <div className="contact-options">
-          <a href="tel:+996225325666" className="contact-btn phone">
-            📞 (225) 325 666
+          <a href="https://wa.me/996225325666" target="_blank" rel="noopener noreferrer" className="contact-btn phone">
+            📞 (225) 325 666 (WhatsApp)
           </a>
-          <a href="mailto:support@example.com" className="contact-btn email">
-            ✉️ support@example.com
+          <a href="mailto:stargoe8@gmail.com" className="contact-btn email">
+            ✉️ stargoe8@gmail.com
           </a>
         </div>
       </div>

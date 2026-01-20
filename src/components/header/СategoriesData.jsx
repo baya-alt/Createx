@@ -1,38 +1,126 @@
-// src/components/header/categoriesData.js
-
 export const MENU_DATA = {
+  // ================= WOMEN =================
   women: [
-    { title: "NEW COLLECTION", links: ["New collection", "Best Sellers", "Plus Size", "Sale up to 70%"] },
-    { title: "CLOTHES", links: ["Coats", "Jackets", "Dresses", "Cardigans & sweaters", "Pants", "Skirts"] },
-    { title: "SHOES", links: ["Boots", "Heels", "Slippers", "Sneakers"] },
-    { title: "ACCESSORIES", links: ["Bags & backpacks", "Hats & scarves", "Hijabs", "Watches", "Sunglasses", "Purses"] }
+    {
+      title: "CLOTHES",
+      links: [
+        { label: "Coats", path: "/product/1" },
+        { label: "Jackets", path: "/product/2" },
+        { label: "Dresses", path: "/product/3" },
+        { label: "Cardigans", path: "/product/4" },
+        { label: "Sweaters", path: "/product/5" },
+        { label: "Pants", path: "/product/6" },
+        { label: "Skirts", path: "/product/7" }
+      ]
+    },
+    {
+      title: "SHOES",
+      links: [
+        { label: "Boots", path: "/product/8" },
+        { label: "Heels", path: "/product/9" },
+        { label: "Slippers", path: "/product/10" },
+        { label: "Sneakers", path: "/product/11" }
+      ]
+    },
+    {
+      title: "ACCESSORIES",
+      links: [
+        { label: "Bags", path: "/product/12" },
+        { label: "Backpacks", path: "/product/13" },
+        { label: "Hats", path: "/product/14" },
+        { label: "Scarves", path: "/product/15" },
+        { label: "Watches", path: "/product/16" },
+        { label: "Sunglasses", path: "/product/17" },
+        { label: "Purses", path: "/product/18" }
+      ]
+    }
   ],
 
+  // ================= MEN =================
   men: [
-    { title: "NEW & SALE", links: ["New arrivals", "Best Sellers", "Basic Collection", "Sale up to 50%"] },
-    { title: "CLOTHES", links: ["Jackets", "Coats", "Shirts", "T-shirts", "Pants"] },
-    { title: "SHOES", links: ["Sneakers", "Sandals", "Casual Shoes"] },
-    { title: "ACCESSORIES", links: ["Watches", "Wallets", "Hats"] }
+    {
+      title: "CLOTHES",
+      links: [
+        { label: "T-shirts", path: "/men/product/1" },
+        { label: "Jackets", path: "/men/product/2" },
+        { label: "Shirts", path: "/men/product/3" },
+        { label: "Coats", path: "/men/product/4" },
+        { label: "Pants", path: "/men/product/5" }
+      ]
+    },
+    {
+      title: "SHOES",
+      links: [
+        { label: "Casual Shoes", path: "/men/product/6" },
+        { label: "Sneakers", path: "/men/product/7" },
+        { label: "Sandals", path: "/men/product/8" }
+      ]
+    }
   ],
 
+  // ================= GIRLS (KIDS) =================
   girls: [
-    { title: "NEW & SALE", links: ["New Arrivals", "Dresses", "Skirts", "Tops", "Jumpsuits", "Sale Items"] },
-    { title: "CLOTHES", links: ["Jackets", "Pants", "Dresses"] },
-    { title: "SHOES", links: ["Boots", "Sneakers"] },
-    { title: "ACCESSORIES", links: ["Bags", "Gloves", "Cap"] }
+    {
+      title: "CLOTHES",
+      links: [
+        { label: "Jackets", path: "/kids/product/1" },
+        { label: "Pants", path: "/kids/product/2" },
+        { label: "Dresses", path: "/kids/product/3" }
+      ]
+    },
+    {
+      title: "SHOES",
+      links: [
+        { label: "Boots", path: "/kids/product/4" },
+        { label: "Sneakers", path: "/kids/product/5" }
+      ]
+    },
+    {
+      title: "ACCESSORIES",
+      links: [
+        { label: "Bags", path: "/kids/product/6" },
+        { label: "Gloves", path: "/kids/product/7" },
+        { label: "Caps", path: "/kids/product/8" }
+      ]
+    }
   ],
 
+  // ================= BOYS (KIDS) =================
   boys: [
-    { title: "NEW & SALE", links: ["New Arrivals", "Shirts", "Pants", "Jeans", "Sale Items"] },
-    { title: "CLOTHES", links: ["Jackets", "T-shirts", "Pants"] },
-    { title: "SHOES", links: ["Sneakers", "Boots", "Casual Shoes"] },
-    { title: "ACCESSORIES", links: ["Watches", "Caps"] }
+    {
+      title: "CLOTHES",
+      links: [
+        { label: "Jackets", path: "/kids/product/9" },
+        { label: "T-shirts", path: "/kids/product/10" },
+        { label: "Pants", path: "/kids/product/11" }
+      ]
+    },
+    {
+      title: "SHOES",
+      links: [
+        { label: "Sneakers", path: "/kids/product/12" },
+        { label: "Boots", path: "/kids/product/13" },
+        { label: "Casual Shoes", path: "/kids/product/14" }
+      ]
+    },
+    {
+      title: "ACCESSORIES",
+      links: [
+        { label: "Watches", path: "/kids/product/15" },
+        { label: "Caps", path: "/kids/product/16" }
+      ]
+    }
   ],
 
+  // ================= SALE =================
   sale: [
-    { title: "WOMEN SALE", links: ["Dresses & Skirts", "Coats & Jackets", "Shoes Sale", "Accessories Sale"] },
-    { title: "MEN SALE", links: ["Tops & Shirts Sale", "Jeans & Pants Sale", "Footwear Sale"] },
-    { title: "KIDS SALE", links: ["Girls Clothing", "Boys Clothing", "Kids Shoes"] },
-    { title: "FINAL CLEARANCE", links: ["Up to 70% off", "Final Sale", "Last Chance Items"] }
+    {
+      title: "SALE",
+      links: [
+        { label: "Up to 30% off", path: "/sale" },
+        { label: "Up to 50% off", path: "/sale" },
+        { label: "Up to 70% off", path: "/sale" }
+      ]
+    }
   ]
 };

@@ -1,5 +1,5 @@
-import Footer from "../footer/Footer";
+import SubscribeForm from "./SubscribeForm";
 
 export default function ContactsPage() {
-  return <Footer />;
+  return <SubscribeForm/>;
 }

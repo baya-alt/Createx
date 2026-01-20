@@ -106,7 +106,7 @@ export default function Footer() {
         <div className="footer-col">
           <h4>{t("footer.getInTouch")}</h4>
           <p>{t("footer.call")}: <strong>(225) 325 666</strong></p>
-          <p>{t("footer.email")}: <strong>hello@createx.com</strong></p>
+          <p>{t("footer.email")}: <strong>stargoe8@gmail.com</strong></p>
 
           <div className="footer-social">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">

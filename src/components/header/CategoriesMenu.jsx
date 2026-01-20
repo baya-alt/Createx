@@ -6,25 +6,14 @@ export default function CategoriesMenu({ data, onCategoryClick }) {
 
   if (!data) return null;
 
-  // Функция для преобразования названия категории в URL
-  const getCategoryUrl = (categoryName) => {
-    // Убираем символы и преобразуем в нижний регистр с дефисами
-    return categoryName
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/gi, '')
-      .replace(/\s+/g, '-')
-      .replace(/&/g, 'and');
-  };
-
-  const handleCategoryClick = (categoryName, e) => {
+  const handleCategoryClick = (path, e) => {
     e.preventDefault();
-    
-    // Закрываем меню
-    onCategoryClick();
-    
-    // Переходим на страницу категории
-    const urlSlug = getCategoryUrl(categoryName);
-    navigate(`/category/${urlSlug}`);
+
+    // закрываем меню
+    onCategoryClick?.();
+
+    // переход по готовому path
+    navigate(path);
   };
 
   return (
@@ -36,17 +25,17 @@ export default function CategoriesMenu({ data, onCategoryClick }) {
 
             <ul className="column-list">
               {col.links.map((link, i) => (
-                <li key={i}>
+                <li key={link.path || i}>
                   <a
-                    href={`/category/${getCategoryUrl(link)}`}
+                    href={link.path}
                     className={
-                      link.toLowerCase().includes("sale")
+                      link.label.toLowerCase().includes("sale")
                         ? "sale-highlight"
                         : ""
                     }
-                    onClick={(e) => handleCategoryClick(link, e)}
+                    onClick={(e) => handleCategoryClick(link.path, e)}
                   >
-                    {link}
+                    {link.label}
                   </a>
                 </li>
               ))}

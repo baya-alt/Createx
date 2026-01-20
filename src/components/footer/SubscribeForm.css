@@ -1,7 +1,7 @@
 .subscribe {
   background: #f4f5f6;
-  /* margin-top: ; */
-  padding: 80px 20px;
+  padding: 80px 20px 0 20px;
+  overflow: hidden;
 }
 
 .subscribe-container {
@@ -13,16 +13,19 @@
   align-items: center;
 }
 
-/* LEFT */  
+.subscribe-left {
+  padding-bottom: 80px;
+}
+
 .subscribe-left h2 {
-  font-size: 40px;
-  font-weight: 700;
+  font-size: 44px;
+  font-weight: 800;
   color: #1e212c;
   margin-bottom: 16px;
 }
 
 .subtitle {
-  font-size: 16px;
+  font-size: 18px;
   color: #787a80;
   margin-bottom: 32px;
 }
@@ -31,18 +34,19 @@
 .subscribe-tabs {
   display: flex;
   gap: 12px;
-  margin-bottom: 32px;
+  margin-bottom: 10px; /* Уменьшил отступ, чтобы ошибка была ближе */
 }
 
 .subscribe-tabs button {
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-size: 14px;
-  border-radius: 6px;
+  font-weight: 600;
+  border-radius: 4px;
   border: 1px solid #d7dadd;
   background: #fff;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #424551;
+  color: #787a80;
+  transition: all 0.3s ease;
 }
 
 .subscribe-tabs button.active {
@@ -51,40 +55,56 @@
   border-color: #17696a;
 }
 
-.subscribe-tabs button:hover {
-  border-color: #17696a;
+/* ERROR MESSAGE STYLE */
+.category-error {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: block;
+  animation: shakeError 0.4s ease-in-out;
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 /* FORM */
 .subscribe-form label {
   display: block;
   font-size: 14px;
-  font-weight: 500;
   margin-bottom: 8px;
   color: #424551;
 }
 
 .input-row {
   display: flex;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .input-row input {
   flex: 1;
-  padding: 14px;
+  padding: 15px;
   border: 1px solid #d7dadd;
-  border-radius: 6px 0 0 6px;
-  font-size: 14px;
+  border-radius: 4px 0 0 4px;
+  font-size: 15px;
+  outline: none;
+}
+
+.input-row input:focus {
+  border-color: #17696a;
 }
 
 .input-row button {
-  padding: 0 28px;
+  padding: 0 32px;
   background: #17696a;
   color: #fff;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 4px 4px 0;
   transition: background 0.2s;
 }
 
@@ -97,60 +117,43 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
-  color: #424551;
+  cursor: pointer;
+  user-select: none;
 }
 
 .checkbox input {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: #17696a;
 }
 
 /* SUCCESS */
 .success {
-  margin-top: 16px;
-  font-size: 14px;
+  margin-top: 20px;
+  padding: 12px;
+  background: #e1f2f2;
   color: #17696a;
-  font-weight: 500;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
-/* RIGHT */
+/* RIGHT IMAGE */
 .subscribe-right {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .subscribe-right img {
   max-width: 100%;
-  height: auto;
 }
 
-/* RESPONSIVE */
 @media (max-width: 900px) {
-  .subscribe-container {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .subscribe-tabs {
-    justify-content: center;
-  }
-
-  .input-row {
-    flex-direction: column;
-  }
-
-  .input-row input,
-  .input-row button {
-    border-radius: 6px;
-  }
-
-  .input-row button {
-    margin-top: 10px;
-  }
-
-  .checkbox {
-    justify-content: center;
-  }
+  .subscribe-container { grid-template-columns: 1fr; text-align: center; }
+  .subscribe-tabs { justify-content: center; flex-wrap: wrap; }
+  .input-row { flex-direction: column; }
+  .input-row input, .input-row button { border-radius: 4px; height: 50px; }
+  .input-row button { margin-top: 10px; }
+  .checkbox { justify-content: center; }
+  .subscribe-right { display: none; }
 }

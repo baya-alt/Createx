@@ -35,10 +35,10 @@ export default function HeaderMain({
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
@@ -47,15 +47,33 @@ export default function HeaderMain({
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
-        const response = await fetch(`https://691bbd103aaeed735c8e1d0d.mockapi.io/my`);
-        const products = await response.json();
+        // 1. Делаем все запросы одновременно
+        const [womenRes, menRes, kidsRes] = await Promise.all([
+          fetch("https://691bbd103aaeed735c8e1d0d.mockapi.io/my"), // Women
+          fetch("https://691bbd103aaeed735c8e1d0d.mockapi.io/man"), // Men
+          fetch("https://6947cef21ee66d04a44dfb36.mockapi.io/kids") // Kids
+        ]);
+
+        // 2. Превращаем каждый ответ в массив данных
+        const womenData = await womenRes.json();
+        const menData = await menRes.json();
+        const kidsData = await kidsRes.json();
+
+        // 3. Объединяем все массивы в один большой список
+        // Используем Spread оператор для слияния
+        const products = [...womenData, ...menData, ...kidsData];
+
+        // 4. Обновляем состояние всеми товарами
         setAllProducts(products);
-        
+
+        // Популярные категории из общего списка
         const popularCategories = [...new Set(products.map(p => p.kategory))].slice(0, 5);
         setPopularSearches(popularCategories);
-        
+
+        // Недавние поиски из localStorage
         const savedSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
         setRecentSearches(savedSearches.slice(0, 5));
+
       } catch (error) {
         console.error('Error loading products:', error);
       }
@@ -106,10 +124,10 @@ export default function HeaderMain({
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
         setShowSuggestions(false);
       }
-      
-      if (mobileMenuRef.current && 
-          !mobileMenuRef.current.contains(event.target) && 
-          !event.target.closest('.burger-menu-btn')) {
+
+      if (mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target) &&
+        !event.target.closest('.burger-menu-btn')) {
         setIsMobileMenuOpen(false);
       }
     };
@@ -126,7 +144,7 @@ export default function HeaderMain({
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -141,7 +159,7 @@ export default function HeaderMain({
       }
 
       setIsSearching(true);
-      
+
       // Ищем товары по названию и категории
       const results = allProducts.filter(product => {
         const searchLower = query.toLowerCase();
@@ -162,14 +180,14 @@ export default function HeaderMain({
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
+
     saveToRecentSearches(searchQuery);
-    
+
     // Ищем точное совпадение
-    const exactMatch = allProducts.find(product => 
+    const exactMatch = allProducts.find(product =>
       product.name.toLowerCase() === searchQuery.toLowerCase()
     );
-    
+
     if (exactMatch) {
       navigateToProduct(exactMatch);
     } else if (searchResults.length === 1) {
@@ -188,7 +206,7 @@ export default function HeaderMain({
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
+
     if (value.trim().length >= 1) {
       performSearch(value);
     } else {
@@ -215,13 +233,13 @@ export default function HeaderMain({
 
   const navigateToProduct = (product) => {
     let productRoute = `/product/${product.id}`;
-    
+
     if (product.kategory && product.kategory.toLowerCase().includes('men')) {
       productRoute = `/men/product/${product.id}`;
     } else if (product.kategory && product.kategory.toLowerCase().includes('kids')) {
       productRoute = `/kids/product/${product.id}`;
     }
-    
+
     navigate(productRoute);
     setSearchQuery("");
     setShowSuggestions(false);
@@ -296,9 +314,8 @@ export default function HeaderMain({
                 <a
                   key={item}
                   href="#"
-                  className={`${item === "sale" ? "sale-link" : ""} ${
-                    activeMenu === item ? "active" : ""
-                  }`}
+                  className={`${item === "sale" ? "sale-link" : ""} ${activeMenu === item ? "active" : ""
+                    }`}
                   onClick={(e) => {
                     e.preventDefault();
                     onMenuToggle(item);
@@ -312,7 +329,7 @@ export default function HeaderMain({
 
           <div className="search-container" ref={searchContainerRef}>
             <form className="search-box" onSubmit={handleSearchSubmit}>
-              <input 
+              <input
                 placeholder={t("headerMain.searchPlaceholder")}
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -337,19 +354,20 @@ export default function HeaderMain({
                     </div>
                     <div className="suggestions-list">
                       {searchResults.map((product) => {
-                        const price = product.sale 
+                        const price = product.sale
                           ? (Number(product.price.replace("$", "")) * (1 - product.sale / 100)).toFixed(2)
                           : Number(product.price.replace("$", "")).toFixed(2);
-                        
+
+
                         return (
-                          <div 
-                            key={product.id} 
+                          <div
+                            key={product.id}
                             className="suggestion-item product-suggestion"
                             onClick={() => navigateToProduct(product)}
                           >
                             <div className="suggestion-image">
-                              <img 
-                                src={product.avatarred || product.avatar || product.avatarwhite} 
+                              <img
+                                src={product.avatarred || product.avatar || product.avatarwhite}
                                 alt={product.name}
                               />
                             </div>
@@ -379,13 +397,13 @@ export default function HeaderMain({
                     </div>
                     <div className="suggestions-list">
                       {allProducts
-                        .filter(product => 
+                        .filter(product =>
                           product.name.toLowerCase().startsWith(searchQuery.toLowerCase())
                         )
                         .slice(0, 5)
                         .map((product, index) => (
-                          <div 
-                            key={index} 
+                          <div
+                            key={index}
                             className="suggestion-item text-suggestion"
                             onClick={() => handleSuggestionClick(product.name)}
                           >
@@ -407,8 +425,8 @@ export default function HeaderMain({
                   <div className="suggestions-section">
                     <div className="section-header">
                       <span>{t("headerMain.recentSearches")}</span>
-                      <button 
-                        className="clear-recent" 
+                      <button
+                        className="clear-recent"
                         onClick={clearRecentSearches}
                         title={t("headerMain.clearAll")}
                       >
@@ -417,15 +435,15 @@ export default function HeaderMain({
                     </div>
                     <div className="suggestions-list">
                       {recentSearches.map((search, index) => (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="suggestion-item recent-search"
                           onClick={() => handleRecentSearchClick(search)}
                         >
                           <span className="suggestion-icon">🕒</span>
                           <span className="suggestion-text">{search}</span>
-                          <button 
-                            className="remove-search" 
+                          <button
+                            className="remove-search"
                             onClick={(e) => {
                               e.stopPropagation();
                               const updated = recentSearches.filter((_, i) => i !== index);
@@ -448,8 +466,8 @@ export default function HeaderMain({
                     </div>
                     <div className="suggestions-list">
                       {popularSearches.map((category, index) => (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="suggestion-item popular-search"
                           onClick={() => handlePopularSearchClick(category)}
                         >
@@ -472,7 +490,7 @@ export default function HeaderMain({
 
                 {/* Ссылка на все результаты */}
                 {searchQuery.trim() && searchResults.length > 0 && (
-                  <div 
+                  <div
                     className="view-all-link"
                     onClick={() => {
                       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -518,15 +536,14 @@ export default function HeaderMain({
                 <FiX size={24} />
               </button>
             </div>
-            
+
             <nav className="mobile-menu-nav">
               {menuItems.map((item) => (
                 <a
                   key={item}
                   href="#"
-                  className={`mobile-menu-item ${item === "sale" ? "sale-link" : ""} ${
-                    activeMenu === item ? "active" : ""
-                  }`}
+                  className={`mobile-menu-item ${item === "sale" ? "sale-link" : ""} ${activeMenu === item ? "active" : ""
+                    }`}
                   onClick={(e) => {
                     e.preventDefault();
                     handleMenuItemClick(item);
@@ -537,7 +554,7 @@ export default function HeaderMain({
                 </a>
               ))}
             </nav>
-            
+
             <div className="mobile-menu-footer">
               <div className="mobile-menu-actions">
                 <button className="mobile-menu-action" onClick={onFavoriteClick}>
@@ -545,18 +562,18 @@ export default function HeaderMain({
                   <span>Favorites</span>
                   <span className="mobile-menu-count">{favoritesCount}</span>
                 </button>
-                
+
                 <button className="mobile-menu-action" onClick={onCartClick}>
                   <img src={cartIcon} alt="Cart" />
                   <span>Cart</span>
                   <span className="mobile-menu-count">{cartCount}</span>
                 </button>
               </div>
-              
+
               <div className="mobile-menu-search">
                 <form className="mobile-search-box" onSubmit={handleSearchSubmit}>
-                  <input 
-                    placeholder="Search..." 
+                  <input
+                    placeholder="Search..."
                     value={searchQuery}
                     onChange={handleSearchChange}
                     onFocus={() => setShowSuggestions(true)}
